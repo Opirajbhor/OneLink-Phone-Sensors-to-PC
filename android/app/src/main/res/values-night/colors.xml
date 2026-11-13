@@ -1,16 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#0E1015</color>
-    <color name="card">#171B23</color>
-    <color name="card2">#1E232D</color>
-    <color name="line">#262D3A</color>
-    <color name="text">#EEF1F7</color>
-    <color name="muted">#98A2B3</color>
-    <color name="faint">#7F8A9C</color>
-    <color name="accent">#6F9BFF</color>
-    <color name="accent_ink">#0B1020</color>
-    <color name="accent_soft">#1B2540</color>
-    <color name="good">#34D399</color>
-    <color name="bad">#F87171</color>
-    <color name="icon_bg">#171B23</color>
+    <!-- dark twins of the Material 3 tokens -->
+    <color name="surface">#111418</color>
+    <color name="surface_lowest">#0D0F13</color>
+    <color name="surface_low">#171A1F</color>
+    <color name="surface_container">#1C1F24</color>
+    <color name="surface_high">#262A31</color>
+    <color name="on_surface">#E3E5E9</color>
+    <color name="on_variant">#C3C6D7</color>
+    <color name="outline">#8D90A0</color>
+    <color name="outline_variant">#3A3F4B</color>
+    <color name="primary">#B3C5FF</color>
+    <color name="primary_container">#2F6DF6</color>
+    <color name="on_primary">#002E6A</color>
+    <color name="primary_fixed">#003EA6</color>
+    <color name="on_primary_fixed_variant">#DBE1FF</color>
+    <color name="secondary">#57DF91</color>
+    <color name="secondary_fixed">#00522D</color>
+    <color name="on_secondary_fixed">#75FCAC</color>
+    <color name="error">#FFB4AB</color>
+
+    <color name="bg">@color/surface</color>
+    <color name="card">@color/surface_lowest</color>
+    <color name="card2">@color/surface_low</color>
+    <color name="line">@color/outline_variant</color>
+    <color name="text">@color/on_surface</color>
+    <color name="muted">@color/on_variant</color>
+    <color name="faint">@color/outline</color>
+    <color name="accent">@color/primary</color>
+    <color name="accent_ink">@color/on_primary</color>
+    <color name="accent_soft">@color/primary_fixed</color>
+    <color name="good">@color/secondary</color>
+    <color name="bad">@color/error</color>
+    <color name="icon_bg">@color/surface_lowest</color>
 </resources>

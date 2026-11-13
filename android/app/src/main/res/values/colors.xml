@@ -1,16 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bg">#F4F6FA</color>
-    <color name="card">#FFFFFF</color>
-    <color name="card2">#F7F9FC</color>
-    <color name="line">#E4E8F0</color>
-    <color name="text">#171A21</color>
-    <color name="muted">#6B7484</color>
-    <color name="faint">#8B95A6</color>
-    <color name="accent">#2F6DF6</color>
-    <color name="accent_ink">#FFFFFF</color>
-    <color name="accent_soft">#E7EFFF</color>
-    <color name="good">#17B26A</color>
-    <color name="bad">#EF4444</color>
-    <color name="icon_bg">#FFFFFF</color>
+    <!-- Material 3 tokens from the design sheet -->
+    <color name="surface">#F7F9FD</color>
+    <color name="surface_lowest">#FFFFFF</color>
+    <color name="surface_low">#F2F4F8</color>
+    <color name="surface_container">#ECEEF2</color>
+    <color name="surface_high">#E6E8EC</color>
+    <color name="on_surface">#191C1F</color>
+    <color name="on_variant">#424655</color>
+    <color name="outline">#737686</color>
+    <color name="outline_variant">#C3C6D7</color>
+    <color name="primary">#0053D7</color>
+    <color name="primary_container">#2F6DF6</color>
+    <color name="on_primary">#FFFFFF</color>
+    <color name="primary_fixed">#DBE1FF</color>
+    <color name="on_primary_fixed_variant">#003EA6</color>
+    <color name="secondary">#006D3E</color>
+    <color name="secondary_fixed">#75FCAC</color>
+    <color name="on_secondary_fixed">#00210F</color>
+    <color name="error">#BA1A1A</color>
+
+    <!-- older names kept so shapes and service code keep resolving -->
+    <color name="bg">@color/surface</color>
+    <color name="card">@color/surface_lowest</color>
+    <color name="card2">@color/surface_low</color>
+    <color name="line">@color/outline_variant</color>
+    <color name="text">@color/on_surface</color>
+    <color name="muted">@color/on_variant</color>
+    <color name="faint">@color/outline</color>
+    <color name="accent">@color/primary</color>
+    <color name="accent_ink">@color/on_primary</color>
+    <color name="accent_soft">@color/primary_fixed</color>
+    <color name="good">@color/secondary</color>
+    <color name="bad">@color/error</color>
+    <color name="icon_bg">@color/surface_lowest</color>
 </resources>

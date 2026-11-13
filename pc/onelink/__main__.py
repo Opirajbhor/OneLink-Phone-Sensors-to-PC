@@ -78,7 +78,13 @@ def main(argv: list[str] | None = None) -> int:
         print("%s: %s" % ("PASS" if res["ok"] else "FAIL", res["reason"]))
         return 0 if res["ok"] else 1
 
-    # GUI
+    # GUI: one instance per machine, however it was launched
+    if not args.serve:
+        from .single import acquire
+        if not acquire():
+            print("OneLink is already running - brought its window to the front.")
+            return 0
+
     if args.tk:
         from .ui import run_gui
         return run_gui(initial_host=args.host)

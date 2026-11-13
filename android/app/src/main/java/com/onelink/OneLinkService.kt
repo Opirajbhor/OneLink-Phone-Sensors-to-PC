@@ -85,6 +85,10 @@ class OneLinkService : Service() {
         @Volatile
         internal var activeSession: ClientSession? = null
 
+        /** Name the connected PC announced (its hostname). */
+        @Volatile
+        var peerName = ""
+
         /** App context for prefs that must be readable before the service runs. */
         @Volatile
         private var appCtx: Context? = null
@@ -92,6 +96,16 @@ class OneLinkService : Service() {
         /** The live service instance, for work that needs it (mDNS rename). */
         @Volatile
         private var self: OneLinkService? = null
+
+        /** Drop the connected PC (the phone keeps listening for a new one). */
+        fun dropClient() {
+            val s = activeSession ?: return
+            try {
+                s.close()
+            } catch (t: Throwable) {
+                Log.w(TAG, "drop client: $t")
+            }
+        }
 
         /** Send a copy made on the phone (Activity button / adb broadcast). */
         fun pushClip(ctx: Context, text: String) {
@@ -418,6 +432,7 @@ class OneLinkService : Service() {
 
     internal fun onClientGone(session: ClientSession) {
         if (activeSession === session) activeSession = null
+        peerName = ""
         synchronized(clientLock) {
             if (client === session) client = null
         }
@@ -691,6 +706,13 @@ class ClientSession(
                 sendStat()
             }
             "clip" -> applyRemoteClip(obj)
+            "hello" -> {
+                val n = obj.optString("name", "")
+                if (n.isNotBlank()) {
+                    OneLinkService.peerName = n
+                    Log.i(tag, "peer is $n")
+                }
+            }
             else -> Log.w(tag, "unknown control message: ${obj.optString("t")}")
         }
     }

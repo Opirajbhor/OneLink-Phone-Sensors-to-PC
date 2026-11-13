@@ -24,6 +24,7 @@ class OneLinkReceiver : BroadcastReceiver() {
                 val text = intent.getStringExtra("text") ?: ""
                 if (text.isNotEmpty()) OneLinkService.pushClip(ctx, text)
             }
+            "com.onelink.DISCONNECT" -> OneLinkService.dropClient()
             else -> Log.w("OneLink/rx", "unknown action: ${intent?.action}")
         }
     }

@@ -12,11 +12,12 @@
 
     <header class="topbar">
       <div class="brand">
-        <div class="mark" aria-hidden="true">
-          <img src="icon.png" alt="">
-        </div>
+        <div class="mark" aria-hidden="true"><img src="icon.png" alt=""></div>
         <div class="brand-text">
-          <h1>OneLink</h1>
+          <div class="brand-line">
+            <h1>OneLink</h1>
+            <span id="versionChip" class="mono-chip">v1.6</span>
+          </div>
           <p>Phone mic &amp; camera, on your PC</p>
         </div>
       </div>
@@ -28,7 +29,7 @@
 
       <div class="top-actions">
         <div id="statusPill" class="pill pill-idle">
-          <span class="dot"></span><span id="statusText">Searching…</span>
+          <span class="dot"></span><span id="statusText">Not connected</span>
         </div>
         <button id="themeBtn" class="icon-btn" title="Toggle theme" aria-label="Toggle theme">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -36,144 +37,267 @@
             <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/>
           </svg>
         </button>
+        <div class="avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+        </div>
       </div>
     </header>
 
-    <!-- ================================================== connect page -->
-    <main id="pageConnect" class="grid page active">
+    <main id="pageConnect" class="page active">
 
-      <section class="card devices">
-        <div class="card-head">
-          <h2>Nearby phones</h2>
-          <div class="head-right">
-            <span id="devCount" class="count">0</span>
-            <button id="refreshBtn" class="icon-btn small" title="Scan again" aria-label="Scan again">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 11-3-6.7M21 3v6h-6"/>
-              </svg>
-            </button>
+      <div class="telemetry">
+        <div class="telemetry-left">
+          <div class="telemetry-pill">
+            <span class="dot dot-good"></span>
+            <span class="t-label">Link engine</span>
+            <span class="mono-chip">mDNS _onelink._tcp</span>
+          </div>
+          <div class="telemetry-meta">
+            <span>Local IP <b id="localIp" class="mono">—</b></span>
+            <span class="sep">•</span>
+            <span>Port <b class="mono">47110</b></span>
           </div>
         </div>
-
-        <ul id="devList" class="dev-list"></ul>
-
-        <div id="empty" class="empty">
-          <div class="radar"><i></i><i></i><i></i><b>
+        <div class="telemetry-right">
+          <div id="mdnsChip" class="soft-chip">
+            <span class="dot dot-good"></span><span>mDNS browsing</span>
+          </div>
+          <button id="refreshBtn" class="icon-btn small" title="Scan network" aria-label="Scan network">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                 stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
-              <rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>
+                 stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12a9 9 0 11-3-6.7M21 3v6h-6"/>
             </svg>
-          </b></div>
-          <p class="empty-title">Looking for your phone</p>
-          <p class="empty-sub">Open the OneLink app on the phone and switch it on.</p>
+          </button>
+        </div>
+      </div>
+
+      <div class="workstation">
+
+        <div class="col-left">
+
+
+          <section class="card">
+            <div class="card-head">
+              <div class="head-left">
+                <h2>Discovered endpoints</h2>
+                <span id="devCount" class="count-chip">0</span>
+              </div>
+              <div class="live-ping">
+                <span class="dot dot-good dot-ping"></span><span>Live</span>
+              </div>
+            </div>
+
+            <ul id="devList" class="dev-list"></ul>
+
+            <div id="empty" class="empty">
+              <div class="radar"><i></i><i></i><i></i><b>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px">
+                  <rect x="6" y="2" width="12" height="20" rx="3"/><path d="M11 18h2"/>
+                </svg>
+              </b></div>
+              <p class="empty-title">Looking for your phone</p>
+              <p class="empty-sub">Open the OneLink app on the phone — it advertises itself over mDNS.</p>
+            </div>
+          </section>
+
+          <div id="usbBanner" class="usb-banner hidden">
+            <div class="usb-main">
+              <div class="usb-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 21V7"/><path d="M9 10l3-3 3 3"/>
+                  <path d="M5 14h2a2 2 0 002-2V9a2 2 0 012-2h2"/>
+                </svg>
+              </div>
+              <div>
+                <div class="usb-title">
+                  <span>USB direct link (ADB)</span>
+                  <span class="usb-tag">lowest latency</span>
+                </div>
+                <p>Reverse forwarding over the cable — no Wi-Fi jitter.</p>
+              </div>
+            </div>
+            <button id="quickConnectUsb" class="usb-btn">Switch to USB</button>
+          </div>
+
+          <section class="card">
+            <div class="card-head">
+              <h2>Direct endpoint</h2>
+              <span class="meta">Hidden subnets and VPN relays</span>
+            </div>
+            <form id="manualForm" class="manual" autocomplete="off">
+              <input id="manualInput" placeholder="192.168.0.101:47110" spellcheck="false">
+              <button type="submit" class="ghost-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M10 13a5 5 0 007 0l3-3a5 5 0 00-7-7l-1 1"/>
+                  <path d="M14 11a5 5 0 00-7 0l-3 3a5 5 0 007 7l1-1"/>
+                </svg>
+                <span>Resolve</span>
+              </button>
+            </form>
+            <div id="recentChips" class="chips"></div>
+          </section>
+
+          <section class="card clip-card">
+            <div class="card-head">
+              <div class="head-left">
+                <h2>Clipboard history</h2>
+                <span id="clipCount" class="count-chip">0</span>
+              </div>
+              <div class="head-right">
+                <label class="switch" title="Clipboard sync">
+                  <input type="checkbox" id="clipToggle">
+                  <span class="track"><span class="thumb"></span></span>
+                </label>
+                <button id="clearClipBtn" class="link-btn">clear</button>
+              </div>
+            </div>
+            <div class="clip-filters" id="clipFilters">
+              <button class="filter-chip on" data-filter="all">All</button>
+              <button class="filter-chip" data-filter="text">Text</button>
+              <button class="filter-chip" data-filter="link">Links</button>
+              <button class="filter-chip" data-filter="code">Code</button>
+            </div>
+            <div class="table-wrap">
+              <table class="clip-table">
+                <thead>
+                  <tr><th>From</th><th>Preview</th><th>Type</th><th>When</th><th></th></tr>
+                </thead>
+                <tbody id="clipBody"></tbody>
+              </table>
+              <p id="clipEmpty" class="meta clip-empty">Copy on either side — it lands here.</p>
+            </div>
+          </section>
         </div>
 
-        <ul class="tips">
-          <li><em>Wi-Fi</em> same network, app switched on</li>
-          <li><em>USB</em> cable + USB debugging</li>
-          <li><em>Manual</em> type the address below</li>
-        </ul>
+        <div class="col-right">
 
-        <form id="manualForm" class="manual" autocomplete="off">
-          <input id="manualInput" placeholder="Add address — 192.168.0.101:47110" spellcheck="false">
-          <button type="submit" class="ghost-btn">Add</button>
-        </form>
+          <section class="card console">
+            <div class="card-head console-head">
+              <div>
+                <h2>Session target</h2>
+                <p id="targetName" class="target-name">No phone selected</p>
+              </div>
+              <div id="targetPill" class="status-pill idle">
+                <span class="dot"></span><span id="targetStatusText">Pick a device</span>
+              </div>
+            </div>
 
-        <div class="dev-actions">
-          <button id="connectBtn" class="primary-btn" disabled>Connect</button>
-          <button id="disconnectBtn" class="ghost-btn" disabled>Disconnect</button>
-        </div>
-      </section>
+            <div id="teleGrid" class="tele-grid">
+              <div class="tele-cell">
+                <span class="tele-label">Transport</span>
+                <b id="tTransport">—</b>
+                <span id="tTransportSub" class="tele-sub">pick a phone</span>
+              </div>
+              <div class="tele-cell">
+                <span class="tele-label">Endpoint</span>
+                <b id="tPort" class="mono">—</b>
+                <span class="tele-sub">tcp</span>
+              </div>
+              <div class="tele-cell">
+                <span class="tele-label">Round trip</span>
+                <b id="tRtt" class="mono">—</b>
+                <span class="tele-sub">ping / pong</span>
+              </div>
+              <div class="tele-cell">
+                <span class="tele-label">Session</span>
+                <b id="tUptime" class="mono">—</b>
+                <span class="tele-sub">connected for</span>
+              </div>
+            </div>
 
-      <section class="stack">
+            <div id="sparkCard" class="spark-card">
+              <div class="spark-head">
+                <span class="tele-label">Live throughput</span>
+                <span id="sparkPeak" class="mono spark-peak">0.0 Mb/s</span>
+              </div>
+              <canvas id="spark" class="spark" width="600" height="120"></canvas>
+              <div class="spark-foot">
+                <span id="sparkNow">0 kB/s now</span>
+                <span id="sparkFrames">0 fps · 0 audio fps</span>
+              </div>
+            </div>
 
-        <div class="card camera-card">
-          <div class="card-head">
-            <h2>Camera</h2>
-            <div class="head-right">
+            <p id="sessionHint" class="session-hint">Pick a phone and press Connect on its card.</p>
+
+            <div class="actions">
+              <div class="actions-row">
+                <button id="disconnectBtn" class="ghost-btn" disabled>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M17 7l-10 10"/><path d="M7 7l10 10"/>
+                  </svg>
+                  <span>Disconnect</span>
+                </button>
+                <button id="openSettingsBtn" class="ghost-btn">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                       stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/>
+                  </svg>
+                  <span>Settings</span>
+                </button>
+              </div>
+            </div>
+          </section>
+
+          <section id="previewCard" class="card preview-card hidden">
+            <div class="card-head">
+              <h2>Live preview</h2>
               <span id="camMeta" class="meta">no frames</span>
             </div>
-          </div>
-          <div id="camStage" class="stage">
-            <div id="camPlaceholder" class="stage-empty">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
-              <p>Camera preview appears here</p>
-              <small>Turn Camera on in Settings to start streaming</small>
+            <div id="camStage" class="stage">
+              <div id="camPlaceholder" class="stage-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+                <p>Waiting for frames</p>
+              </div>
+              <canvas id="camCanvas"></canvas>
             </div>
-            <canvas id="camCanvas"></canvas>
-          </div>
-          <div class="cam-bar">
-            <div class="seg" id="facingSeg" role="group" aria-label="Camera facing">
-              <button type="button" data-facing="back" class="on">Back</button>
-              <button type="button" data-facing="front">Front</button>
+            <div class="cam-bar">
+              <div class="seg" id="facingSeg" role="group" aria-label="Camera facing">
+                <button type="button" data-facing="back" class="on">Back</button>
+                <button type="button" data-facing="front">Front</button>
+              </div>
+              <button type="button" id="rotateBtn" class="ghost-btn tiny" title="Rotate 90°">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                     stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 11-2.6-6.4M21 3v6h-6"/>
+                </svg>
+                <span id="rotLabel">0°</span>
+              </button>
             </div>
-            <button type="button" id="rotateBtn" class="ghost-btn tiny" title="Rotate 90°">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                   stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 12a9 9 0 11-2.6-6.4M21 3v6h-6"/>
-              </svg>
-              <span id="rotLabel">0°</span>
-            </button>
-            <span class="spacer"></span>
-            <span id="camSizeNote" class="meta">640x480 · 10 fps</span>
-          </div>
-        </div>
+          </section>
 
-        <div class="row2">
-          <div class="card control">
-            <div class="card-head">
-              <h2>Microphone</h2>
-              <span id="micState" class="meta">off</span>
+          <section class="card">
+            <div class="card-head"><h2>Streams</h2><span class="meta">phone → PC</span></div>
+            <div class="stream-row">
+              <span class="tele-label">Microphone</span>
+              <div class="meter"><div id="micBar" class="meter-fill"></div></div>
+              <span id="micDb" class="mono small">−∞ dB</span>
             </div>
-            <div class="meter"><div id="micBar" class="meter-fill"></div></div>
-            <div class="control-foot">
-              <span id="micDb" class="meta">−∞ dB</span>
+            <div class="stream-row">
+              <span class="tele-label">Speaker</span>
+              <div class="meter"><div id="spkBar" class="meter-fill spk"></div></div>
+              <span id="spkKbps" class="mono small">idle</span>
+            </div>
+            <div class="stream-foot">
               <span id="micRoute" class="route">not connected</span>
-            </div>
-          </div>
-
-          <div class="card control">
-            <div class="card-head">
-              <h2>Speaker</h2>
-              <span id="spkState" class="meta">off</span>
-            </div>
-            <div class="meter"><div id="spkBar" class="meter-fill spk"></div></div>
-            <div class="control-foot">
-              <span id="streamStats" class="meta">idle</span>
               <span id="spkRoute" class="route">PC sound → phone</span>
             </div>
-          </div>
+          </section>
         </div>
-
-        <div class="card clip-card">
-          <div class="card-head">
-            <h2>Clipboard</h2>
-            <div class="head-right">
-              <span id="clipMeta" class="meta">sync off</span>
-            </div>
-          </div>
-          <ul id="clipList" class="clip-list"></ul>
-          <div class="control-foot">
-            <span id="clipEmpty" class="meta">Copy on either side — it lands here, click to put it back.</span>
-          </div>
-        </div>
-
-        <div class="card log-card">
-          <div class="card-head">
-            <h2>Activity</h2>
-            <button id="logToggle" class="link-btn">hide</button>
-          </div>
-          <pre id="log" class="log"></pre>
-        </div>
-      </section>
+      </div>
     </main>
 
-    <!-- ================================================= settings page -->
     <main id="pageSettings" class="page settings">
       <div class="settings-wrap">
 
@@ -215,7 +339,7 @@
               <span>Two-way text with history on both sides.</span>
             </div>
             <label class="switch">
-              <input type="checkbox" id="clipToggle">
+              <input type="checkbox" id="clipToggle2">
               <span class="track"><span class="thumb"></span></span>
             </label>
           </div>
@@ -224,10 +348,7 @@
         <section class="card">
           <div class="card-head"><h2>Camera</h2></div>
           <div class="set-row">
-            <div class="set-text">
-              <b>Resolution</b>
-              <span>Lower is smoother over Wi-Fi.</span>
-            </div>
+            <div class="set-text"><b>Resolution</b><span>Lower is smoother over Wi-Fi.</span></div>
             <label class="field compact">
               <select id="sizeSel">
                 <option>1280x720</option>
@@ -238,10 +359,7 @@
             </label>
           </div>
           <div class="set-row">
-            <div class="set-text">
-              <b>Frame rate</b>
-              <span>Frames per second. Above 30 costs bandwidth and heat.</span>
-            </div>
+            <div class="set-text"><b>Frame rate</b><span>Above 30 costs bandwidth and heat.</span></div>
             <label class="field compact">
               <select id="fpsInput">
                 <option value="10" selected>10 fps</option>
@@ -252,15 +370,6 @@
               </select>
             </label>
           </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Rotation</b>
-              <span>Turn the picture without touching the phone.</span>
-            </div>
-            <button type="button" id="rotateBtn2" class="ghost-btn tiny">
-              <span id="rotLabel2">0°</span>
-            </button>
-          </div>
         </section>
 
         <section class="card">
@@ -268,8 +377,8 @@
           <div class="set-row">
             <div class="set-text">
               <b>Silence the PC while streaming</b>
-              <span>Moves the Windows default playback to VB-Cable and puts it back when
-                streaming stops or the app exits.</span>
+              <span>Switches the Windows default playback to VB-Cable and puts it back
+                when streaming stops or the app exits.</span>
             </div>
             <label class="switch">
               <input type="checkbox" id="muteChk" checked>
@@ -277,17 +386,13 @@
             </label>
           </div>
           <div class="set-row">
-            <div class="set-text">
-              <b>Virtual microphone</b>
-              <span id="setSinkName">CABLE Input</span>
-            </div>
+            <div class="set-text"><b>Virtual microphone</b><span id="setSinkName">CABLE Input</span></div>
             <span id="setSinkState" class="state-chip">ready</span>
           </div>
           <div class="set-row">
             <div class="set-text">
               <b>Rename it in Windows</b>
-              <span>Windows keeps endpoint names to itself: Settings → Sound → All sound
-                devices → rename. OneLink picks the device up whatever it is called.</span>
+              <span>Windows keeps endpoint names to itself — Settings → Sound → All sound devices.</span>
             </div>
             <button type="button" id="openSoundBtn" class="ghost-btn tiny">Open</button>
           </div>
@@ -296,7 +401,7 @@
         <section class="card">
           <div class="card-head">
             <h2>Clipboard history</h2>
-            <button id="clearClipBtn" class="link-btn">clear</button>
+            <button id="clearClipBtn2" class="link-btn">clear</button>
           </div>
           <div class="set-row">
             <div class="set-text">
@@ -305,6 +410,14 @@
             </div>
             <span id="setClipCount" class="state-chip">0</span>
           </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Activity</h2>
+            <button id="logToggle" class="link-btn">hide</button>
+          </div>
+          <pre id="log" class="log"></pre>
         </section>
 
         <section class="card">
@@ -321,7 +434,6 @@
             <span class="state-chip">tray</span>
           </div>
         </section>
-
       </div>
     </main>
   </div>

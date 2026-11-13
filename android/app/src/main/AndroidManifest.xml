@@ -21,7 +21,7 @@
         android:icon="@mipmap/ic_launcher"
         android:roundIcon="@mipmap/ic_launcher"
         android:label="OneLink"
-        android:theme="@android:style/Theme.Material.Light.NoActionBar">
+        android:theme="@style/OneLinkTheme">
 
         <activity
             android:name=".MainActivity"
@@ -60,6 +60,7 @@
                 <action android:name="com.onelink.START" />
                 <action android:name="com.onelink.STOP" />
                 <action android:name="com.onelink.CLIPSET" />
+                <action android:name="com.onelink.DISCONNECT" />
             </intent-filter>
         </receiver>
     </application>

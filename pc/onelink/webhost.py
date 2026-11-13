@@ -14,6 +14,7 @@ import atexit
 import base64
 import json
 import os
+import socket
 import threading
 import time
 import traceback
@@ -63,6 +64,11 @@ class Bridge:
         self.sender: audio_out.LoopbackSender | None = None
         self._saved_default: str | None = None
         self._switched_to: str = ""
+        self.rtt_ms: float | None = None
+        self._ping_at = 0.0
+        self.conn_host = ""
+        self.conn_port = 0
+        self.conn_source = ""
         self._playback_marker = os.path.join(
             os.environ.get("APPDATA") or os.path.expanduser("~"),
             "OneLink", "playback.json")
@@ -92,6 +98,7 @@ class Bridge:
         self._open_sink()
         self._start_mdns()
         self._start_clipboard()
+        threading.Thread(target=self._latency_loop, name="latency", daemon=True).start()
         threading.Thread(target=self._scan_adb, name="adb-scan", daemon=True).start()
         if initial_host:
             self.add_manual(initial_host)
@@ -213,7 +220,19 @@ class Bridge:
             self.conn_state = "connected"
             self.conn_name = dev.name
             self.conn_detail = dev.detail or dev.source
+            self.conn_host = dev.host
+            self.conn_port = dev.port
+            self.conn_source = dev.source
+            self.rtt_ms = None
             self._log("connected to %s via %s" % (dev.name, dev.source))
+            # tell the phone who it is talking to, so it can name the PC
+            try:
+                self._client.send_json({
+                    "t": "hello", "role": "pc",
+                    "name": socket.gethostname() or "this PC",
+                })
+            except Exception:  # noqa: BLE001
+                pass
             self._push_cfg()
             self._sync_sender()
         except Exception:  # noqa: BLE001
@@ -465,6 +484,9 @@ class Bridge:
             self._log("phone error: %s" % payload)
         elif kind == "clip":
             self._on_remote_clip(payload or {})
+        elif kind == "pong":
+            if self._ping_at:
+                self.rtt_ms = max(0.0, (time.time() - self._ping_at) * 1000.0)
         elif kind == "closed":
             self.conn_state = "idle"
             self._close_sink()
@@ -474,6 +496,28 @@ class Bridge:
             self._log("closed: %s" % payload)
 
     # ---------------------------------------------------------- clipboard
+    def local_ip(self) -> str:
+        """This PC's LAN address, for the telemetry strip."""
+        try:
+            with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+                s.connect(("8.8.8.8", 80))
+                return s.getsockname()[0]
+        except Exception:  # noqa: BLE001
+            return ""
+
+    def _latency_loop(self):
+        """One ping every 2 s while connected; the pong stamps the round trip."""
+        while not self._closing:
+            time.sleep(2.0)
+            if not self._client.is_connected:
+                self.rtt_ms = None
+                continue
+            self._ping_at = time.time()
+            try:
+                self._client.send_ping()
+            except Exception:  # noqa: BLE001
+                pass
+
     def _start_clipboard(self):
         if clipmod is None:
             self._log("clipboard: unavailable on this platform")
@@ -560,7 +604,14 @@ class Bridge:
         return {
             "version": self._ui_version,
             "conn": {"state": self.conn_state, "name": self.conn_name,
-                     "detail": self.conn_detail},
+                     "detail": self.conn_detail,
+                     "rtt_ms": (round(self.rtt_ms, 2) if self.rtt_ms else None),
+                     "host": self.conn_host, "port": self.conn_port,
+                     "source": self.conn_source,
+                     "uptime": int(time.time() - c.connected_at) if c.is_connected and c.connected_at else 0},
+            "net": {"local_ip": self.local_ip(), "port": 47110,
+                    "mdns": bool(self.mdns is not None),
+                    "adb": self.adb_path is not None},
             "devices": devices,
             "sel": self.sel,
             "mic": {"enabled": self.mic_enabled, "level": self.level,
