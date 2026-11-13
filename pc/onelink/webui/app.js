@@ -20,6 +20,8 @@ const transportOf = (source) => TRANSPORT[(source || "").toLowerCase()] || (sour
 
 let facing = "back";
 let rotation = 0;
+let camSize = "640x480";
+let camFps = 10;
 let lastFrameImg = null;
 let sparkHistory = [];
 let clipFilter = "all";
@@ -356,14 +358,7 @@ function renderClip(state) {
 /* ------------------------------------------------------------- camera */
 function renderCam(state) {
   const cam = state.cam || {};
-  $("camToggle").checked = !!cam.enabled;
   $("previewCard").classList.toggle("hidden", !cam.enabled);
-  if (cam.size && document.activeElement !== $("sizeSel")) $("sizeSel").value = cam.size;
-  if (cam.fps && document.activeElement !== $("fpsInput")) {
-    const want = String(Math.round(cam.fps));
-    const sel = $("fpsInput");
-    if ([...sel.options].some((o) => o.value === want)) sel.value = want;
-  }
   if (cam.facing && cam.facing !== facing) {
     facing = cam.facing;
     setFacingUI(facing);
@@ -415,18 +410,73 @@ function setFacingUI(value) {
 }
 
 /* ----------------------------------------------------------- settings */
+function setChan(cardId, toggleId, on) {
+  const box = $(toggleId);
+  if (box && box.checked !== on) box.checked = on;
+  const card = $(cardId);
+  if (card) card.classList.toggle("on", on);
+}
+
 function renderSettings(state) {
   const mic = state.mic || {};
   const cam = state.cam || {};
   const spk = state.spk || {};
   const clip = state.clip || {};
-  $("setClipCount").textContent = String((clip.items || []).length);
-  if (mic.sink) $("setSinkName").textContent = mic.sink;
-  const sinkOk = $("setSinkState");
-  sinkOk.textContent = mic.sink_ok ? "ready" : "missing";
-  sinkOk.classList.toggle("on", !!mic.sink_ok);
-  $("setVersion").textContent = "version " + (state.version || "—");
-  if (document.activeElement !== $("clipToggle2")) $("clipToggle2").checked = clip.enabled !== false;
+  const items = clip.items || [];
+  const stats = state.stats || {};
+
+  /* channels */
+  setChan("chanCardMic", "chMic", !!mic.enabled);
+  setChan("chanCardCam", "chCam", !!cam.enabled);
+  setChan("chanCardSpk", "chSpk", !!spk.enabled);
+  setChan("chanCardClip", "chClip", clip.enabled !== false);
+
+  const lvl = Math.max(0, Math.min(1, mic.level || 0));
+  $("micBar").style.width = (lvl * 100).toFixed(1) + "%";
+  $("micDb").textContent = mic.db ? mic.db.toFixed(1) + " dB" : "-∞ dB";
+  $("micSink").textContent = mic.sink || "no endpoint";
+
+  camSize = cam.size || camSize;
+  camFps = Math.round(cam.fps || camFps);
+  $("camSizeChip").textContent = String(camSize).replace("x", "×");
+  $("camFpsChip").textContent = camFps + " fps";
+  $("camFrames").textContent = cam.enabled
+    ? (stats.vfps ? stats.vfps.toFixed(1) + " fps arriving" : "warming up")
+    : "idle";
+  $("camFrames").classList.toggle("live", !!(cam.enabled && stats.vfps));
+  $("camAspect").textContent = camSize === "960x540" ? "16:9 sensor" : camSize === "1280x720" ? "16:9 sensor" : "4:3 sensor";
+  for (const b of document.querySelectorAll("#sizeSeg .seg")) b.classList.toggle("on", b.dataset.size === camSize);
+  for (const b of document.querySelectorAll("#fpsSeg .seg")) b.classList.toggle("on", Number(b.dataset.fps) === camFps);
+  $("lensLabel").textContent = (cam.facing || facing) === "front" ? "Front" : "Back";
+
+  $("spkState").textContent = spk.enabled ? "streaming" : "idle";
+  $("spkState").classList.toggle("live", !!spk.enabled);
+  $("spkDevice").textContent = spk.device || "loopback";
+  $("engineState").textContent = spk.ok ? "WASAPI ACTIVE" : "WASAPI";
+
+  const n = items.length;
+  $("clipCount").textContent = n + (n === 1 ? " cached clip" : " cached clips");
+  $("clipState").textContent = clip.enabled !== false ? "watching" : "idle";
+  if ($("clipToggle").checked !== (clip.enabled !== false)) $("clipToggle").checked = clip.enabled !== false;
+  $("clipState").classList.toggle("live", clip.enabled !== false);
+  $("clipBadge").textContent = n + " / 50 items";
+  const bytes = items.reduce((a, it) => a + ((it.text || "").length * 2), 0);
+  $("clipBytes").textContent = (bytes / 1024).toFixed(1) + " KB of 1 MB";
+  $("clipBar").style.width = Math.max(0.6, Math.min(100, (bytes / (1024 * 1024)) * 100)).toFixed(1) + "%";
+
+  /* audio panel */
+  if (document.activeElement !== $("muteChk")) $("muteChk").checked = spk.mute_pc !== false;
+  $("sinkName").textContent = mic.sink || "CABLE Input";
+  const sink = $("sinkState");
+  sink.textContent = mic.sink_ok ? "READY" : "MISSING";
+  sink.classList.toggle("on", !!mic.sink_ok);
+  $("driverNote").textContent = mic.sink_ok
+    ? "Bound to " + (mic.sink || "VB-Audio Virtual Cable") + " · 48000 Hz · 16-bit stereo."
+    : "VB-Audio endpoint not found — install the OneLink audio driver pair.";
+
+  /* system panel */
+  $("setVersion").textContent = "OneLink " + (state.version || "—") + " (Windows x64)";
+  $("protoVersion").textContent = "OneLink Protocol v1";
 }
 
 function renderLog(state) {
@@ -468,10 +518,10 @@ async function refresh() {
 
 function pushCfg() {
   call("set_cfg",
-    $("micToggle").checked, $("camToggle").checked,
-    $("sizeSel").value, Number($("fpsInput").value) || 10,
-    facing, $("spkToggle").checked, $("muteChk").checked,
-    $("clipToggle").checked || $("clipToggle2").checked);
+    $("chMic").checked, $("chCam").checked,
+    camSize, camFps,
+    facing, $("chSpk").checked, $("muteChk").checked,
+    $("chClip").checked);
 }
 
 /* ------------------------------------------------------------- wiring */
@@ -488,14 +538,26 @@ $("manualForm").addEventListener("submit", async (e) => {
   renderDevices.sig = null;
 });
 
-for (const el of ["micToggle", "camToggle", "spkToggle", "muteChk", "clipToggle", "clipToggle2"]) {
-  $(el).addEventListener("change", () => {
-    $("clipToggle").checked = $("clipToggle2").checked;
-    pushCfg();
-  });
+for (const el of ["chMic", "chCam", "chSpk", "chClip", "muteChk"]) {
+  $(el).addEventListener("change", () => pushCfg());
 }
-$("sizeSel").addEventListener("change", pushCfg);
-$("fpsInput").addEventListener("change", pushCfg);
+for (const b of document.querySelectorAll("#sizeSeg .seg")) {
+  b.addEventListener("click", () => { camSize = b.dataset.size; pushCfg(); });
+}
+for (const b of document.querySelectorAll("#fpsSeg .seg")) {
+  b.addEventListener("click", () => { camFps = Number(b.dataset.fps); pushCfg(); });
+}
+$("clipToggle").addEventListener("change", () => {
+  $("chClip").checked = $("clipToggle").checked;
+  pushCfg();
+});
+$("lensBtn").addEventListener("click", () => {
+  facing = facing === "back" ? "front" : "back";
+  setFacingUI(facing);
+  pushCfg();
+});
+$("rackRescan").addEventListener("click", refresh);
+$("rackApply").addEventListener("click", () => pushCfg());
 
 for (const b of document.querySelectorAll("#facingSeg button")) {
   b.addEventListener("click", () => {

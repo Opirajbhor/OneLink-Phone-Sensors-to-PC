@@ -143,36 +143,6 @@
             <div id="recentChips" class="chips"></div>
           </section>
 
-          <section class="card clip-card">
-            <div class="card-head">
-              <div class="head-left">
-                <h2>Clipboard history</h2>
-                <span id="clipCount" class="count-chip">0</span>
-              </div>
-              <div class="head-right">
-                <label class="switch" title="Clipboard sync">
-                  <input type="checkbox" id="clipToggle">
-                  <span class="track"><span class="thumb"></span></span>
-                </label>
-                <button id="clearClipBtn" class="link-btn">clear</button>
-              </div>
-            </div>
-            <div class="clip-filters" id="clipFilters">
-              <button class="filter-chip on" data-filter="all">All</button>
-              <button class="filter-chip" data-filter="text">Text</button>
-              <button class="filter-chip" data-filter="link">Links</button>
-              <button class="filter-chip" data-filter="code">Code</button>
-            </div>
-            <div class="table-wrap">
-              <table class="clip-table">
-                <thead>
-                  <tr><th>From</th><th>Preview</th><th>Type</th><th>When</th><th></th></tr>
-                </thead>
-                <tbody id="clipBody"></tbody>
-              </table>
-              <p id="clipEmpty" class="meta clip-empty">Copy on either side — it lands here.</p>
-            </div>
-          </section>
         </div>
 
         <div class="col-right">
@@ -295,145 +265,330 @@
             </div>
           </section>
         </div>
+
+        <div class="workstation-foot">
+          <section class="card clip-card">
+            <div class="card-head">
+              <div class="head-left">
+                <h2>Clipboard history</h2>
+                <span id="clipCount" class="count-chip">0</span>
+              </div>
+              <div class="head-right">
+                <label class="switch" title="Clipboard sync">
+                  <input type="checkbox" id="clipToggle">
+                  <span class="track"><span class="thumb"></span></span>
+                </label>
+                <button id="clearClipBtn" class="link-btn">clear</button>
+              </div>
+            </div>
+            <div class="clip-filters" id="clipFilters">
+              <button class="filter-chip on" data-filter="all">All</button>
+              <button class="filter-chip" data-filter="text">Text</button>
+              <button class="filter-chip" data-filter="link">Links</button>
+              <button class="filter-chip" data-filter="code">Code</button>
+            </div>
+            <div class="table-wrap">
+              <table class="clip-table">
+                <thead>
+                  <tr><th>From</th><th>Preview</th><th>Type</th><th>When</th><th></th></tr>
+                </thead>
+                <tbody id="clipBody"></tbody>
+              </table>
+              <p id="clipEmpty" class="meta clip-empty">Copy on either side — it lands here.</p>
+            </div>
+          </section>
+        </div>
       </div>
     </main>
 
     <main id="pageSettings" class="page settings">
-      <div class="settings-wrap">
+      <div class="rack">
 
-        <section class="card">
-          <div class="card-head"><h2>Streaming</h2></div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Microphone</b>
-              <span>Phone mic into the virtual microphone on this PC.</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="micToggle">
-              <span class="track"><span class="thumb"></span></span>
-            </label>
+        <div class="rack-head">
+          <div>
+            <h1 class="rack-title">Hardware control &amp; channel rack</h1>
+            <p class="rack-sub">Configure the audio, video and clipboard pipes between this PC and the phone.</p>
           </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Camera</b>
-              <span>Phone camera frames into the preview window.</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="camToggle">
-              <span class="track"><span class="thumb"></span></span>
-            </label>
+          <div class="rack-actions">
+            <button id="rackRescan" class="soft-btn" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-3-6.7M21 3v6h-6"/></svg>
+              <span>Rescan devices</span>
+            </button>
+            <button id="rackApply" class="soft-btn primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/><path d="M15 6l5 5"/></svg>
+              <span>Apply changes</span>
+            </button>
           </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Speaker</b>
-              <span>PC sound sent to the phone, for Bluetooth or wired headphones.</span>
+        </div>
+
+        <section class="rack-section">
+          <div class="sec-head">
+            <div class="sec-left">
+              <span class="sec-title">Streaming channels</span>
+              <span class="mono-badge">4 buses</span>
             </div>
-            <label class="switch">
-              <input type="checkbox" id="spkToggle">
-              <span class="track"><span class="thumb"></span></span>
-            </label>
+            <span class="sec-note">Direct socket · no cloud relay</span>
           </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Clipboard sync</b>
-              <span>Two-way text with history on both sides.</span>
-            </div>
-            <label class="switch">
-              <input type="checkbox" id="clipToggle2">
-              <span class="track"><span class="thumb"></span></span>
-            </label>
+
+          <div class="chan-grid">
+            <article class="chan" id="chanCardMic">
+              <span class="chan-rail"></span>
+              <div class="chan-top">
+                <div class="chan-id">
+                  <span class="chan-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0014 0M12 18v4M8 22h8"/></svg>
+                  </span>
+                  <div>
+                    <div class="chan-name">Microphone <span class="mono-tag">phone → PC</span></div>
+                    <span class="chan-sub">Phone mic into the virtual mic on this PC</span>
+                  </div>
+                </div>
+                <label class="switch"><input type="checkbox" id="chMic"><span class="track"><span class="thumb"></span></span></label>
+              </div>
+              <div class="chan-foot">
+                <div class="chan-meter">
+                  <div class="chan-meter-head"><span>Input level</span><span id="micDb" class="mono-val">-∞ dB</span></div>
+                  <div class="chan-meter-track"><span id="micBar" class="chan-meter-bar"></span></div>
+                </div>
+                <span class="chan-pill" id="micSink">—</span>
+              </div>
+            </article>
+
+            <article class="chan" id="chanCardCam">
+              <span class="chan-rail"></span>
+              <div class="chan-top">
+                <div class="chan-id">
+                  <span class="chan-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 11l7-4v10l-7-4"/></svg>
+                  </span>
+                  <div>
+                    <div class="chan-name">Camera <span class="mono-tag">live preview</span></div>
+                    <span class="chan-sub">Phone sensor frames into the preview card</span>
+                  </div>
+                </div>
+                <label class="switch"><input type="checkbox" id="chCam"><span class="track"><span class="thumb"></span></span></label>
+              </div>
+              <div class="chan-foot">
+                <div class="chan-chips">
+                  <span class="chan-chip" id="camSizeChip">640×480</span>
+                  <span class="chan-chip" id="camFpsChip">10 fps</span>
+                </div>
+                <span class="chan-pill" id="camFrames">idle</span>
+              </div>
+            </article>
+
+            <article class="chan" id="chanCardSpk">
+              <span class="chan-rail"></span>
+              <div class="chan-top">
+                <div class="chan-id">
+                  <span class="chan-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9H4z"/><path d="M17 8.5a5 5 0 010 7"/></svg>
+                  </span>
+                  <div>
+                    <div class="chan-name">Speaker <span class="mono-tag">PC → phone</span></div>
+                    <span class="chan-sub">PC audio to the phone, wired or Bluetooth headset</span>
+                  </div>
+                </div>
+                <label class="switch"><input type="checkbox" id="chSpk"><span class="track"><span class="thumb"></span></span></label>
+              </div>
+              <div class="chan-foot">
+                <span class="chan-chip" id="spkState">idle</span>
+                <span class="chan-pill" id="spkDevice">loopback</span>
+              </div>
+            </article>
+
+            <article class="chan" id="chanCardClip">
+              <span class="chan-rail"></span>
+              <div class="chan-top">
+                <div class="chan-id">
+                  <span class="chan-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h11l-3-3M20 16H9l3 3"/></svg>
+                  </span>
+                  <div>
+                    <div class="chan-name">Clipboard sync <span class="mono-tag">bidirectional</span></div>
+                    <span class="chan-sub">Instant text bridge, history kept on both sides</span>
+                  </div>
+                </div>
+                <label class="switch"><input type="checkbox" id="chClip"><span class="track"><span class="thumb"></span></span></label>
+              </div>
+              <div class="chan-foot">
+                <span class="chan-chip" id="clipState">idle</span>
+                <span class="chan-pill" id="clipCount">0 cached clips</span>
+              </div>
+            </article>
           </div>
         </section>
 
-        <section class="card">
-          <div class="card-head"><h2>Camera</h2></div>
-          <div class="set-row">
-            <div class="set-text"><b>Resolution</b><span>Lower is smoother over Wi-Fi.</span></div>
-            <label class="field compact">
-              <select id="sizeSel">
-                <option>1280x720</option>
-                <option selected>640x480</option>
-                <option>960x540</option>
-                <option>320x240</option>
-              </select>
-            </label>
-          </div>
-          <div class="set-row">
-            <div class="set-text"><b>Frame rate</b><span>Above 30 costs bandwidth and heat.</span></div>
-            <label class="field compact">
-              <select id="fpsInput">
-                <option value="10" selected>10 fps</option>
-                <option value="15">15 fps</option>
-                <option value="30">30 fps</option>
-                <option value="45">45 fps</option>
-                <option value="60">60 fps</option>
-              </select>
-            </label>
-          </div>
-        </section>
-
-        <section class="card">
-          <div class="card-head"><h2>Audio</h2></div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Silence the PC while streaming</b>
-              <span>Switches the Windows default playback to VB-Cable and puts it back
-                when streaming stops or the app exits.</span>
+        <div class="rack-two">
+          <section class="panel" id="section-camera">
+            <div class="panel-head">
+              <div class="sec-left">
+                <span class="panel-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="13" height="12" rx="2"/><path d="M15 11l7-4v10l-7-4"/></svg>
+                </span>
+                <span class="sec-title">Camera presets</span>
+              </div>
+              <span class="sec-note" id="camAspect">4:3 sensor</span>
             </div>
-            <label class="switch">
-              <input type="checkbox" id="muteChk" checked>
-              <span class="track"><span class="thumb"></span></span>
-            </label>
-          </div>
-          <div class="set-row">
-            <div class="set-text"><b>Virtual microphone</b><span id="setSinkName">CABLE Input</span></div>
-            <span id="setSinkState" class="state-chip">ready</span>
-          </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Rename it in Windows</b>
-              <span>Windows keeps endpoint names to itself — Settings → Sound → All sound devices.</span>
-            </div>
-            <button type="button" id="openSoundBtn" class="ghost-btn tiny">Open</button>
-          </div>
-        </section>
 
-        <section class="card">
-          <div class="card-head">
-            <h2>Clipboard history</h2>
-            <button id="clearClipBtn2" class="link-btn">clear</button>
-          </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Kept on this PC</b>
-              <span>Newest first, up to 50 entries, saved between runs.</span>
+            <div class="prow">
+              <div class="prow-text">
+                <b>Resolution profile</b>
+                <span>Frame buffer dimensions sent to the PC.</span>
+              </div>
             </div>
-            <span id="setClipCount" class="state-chip">0</span>
-          </div>
-        </section>
+            <div class="seg-grid" id="sizeSeg">
+              <button type="button" class="seg" data-size="320x240">320×240</button>
+              <button type="button" class="seg" data-size="640x480">640×480</button>
+              <button type="button" class="seg" data-size="960x540">960×540</button>
+              <button type="button" class="seg" data-size="1280x720">1280×720</button>
+            </div>
 
-        <section class="card">
-          <div class="card-head">
-            <h2>Activity</h2>
+            <div class="prow">
+              <div class="prow-text">
+                <b>Frame rate</b>
+                <span>Above 30 fps costs Wi-Fi bandwidth and phone heat.</span>
+              </div>
+            </div>
+            <div class="seg-grid five" id="fpsSeg">
+              <button type="button" class="seg" data-fps="10">10</button>
+              <button type="button" class="seg" data-fps="15">15</button>
+              <button type="button" class="seg" data-fps="30">30</button>
+              <button type="button" class="seg" data-fps="45">45</button>
+              <button type="button" class="seg" data-fps="60">60</button>
+            </div>
+
+            <div class="prow split">
+              <div class="prow-text">
+                <b>Lens</b>
+                <span>Front or back camera, switched on the phone at capture time.</span>
+              </div>
+              <button type="button" id="lensBtn" class="soft-btn small">
+                <span id="lensLabel">Back</span>
+                <span class="seg-hint">swap</span>
+              </button>
+            </div>
+
+            <div class="note-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h10M4 12h16M4 18h7"/><circle cx="18" cy="6" r="2"/></svg>
+              <span>Frames arrive as JPEG over the direct socket — the preview card redraws them at the phone's capture rate.</span>
+            </div>
+          </section>
+
+          <section class="panel" id="section-audio">
+            <div class="panel-head">
+              <div class="sec-left">
+                <span class="panel-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18v-6M9 18V8M14 18v-9M19 18v-4"/></svg>
+                </span>
+                <span class="sec-title">Audio engine &amp; routing</span>
+              </div>
+              <span class="sec-note ok" id="engineState">WASAPI</span>
+            </div>
+
+            <div class="prow split">
+              <div class="prow-text">
+                <b>Silence the PC while streaming</b>
+                <span>Switches the default Windows playback to VB-Cable and puts it back when streaming stops.</span>
+              </div>
+              <label class="switch"><input type="checkbox" id="muteChk"><span class="track"><span class="thumb"></span></span></label>
+            </div>
+
+            <div class="prow split">
+              <div class="prow-text">
+                <b>Virtual microphone device</b>
+                <span>Windows kernel-streaming endpoint used by other apps.</span>
+              </div>
+              <div class="prow-side">
+                <span class="mono-chip strong" id="sinkName">CABLE Input</span>
+                <span class="state-chip" id="sinkState">ready</span>
+              </div>
+            </div>
+
+            <div class="prow split">
+              <div class="prow-text">
+                <b>Rename it in Windows</b>
+                <span>Opens the native sound properties for the endpoint.</span>
+              </div>
+              <button type="button" id="openSoundBtn" class="soft-btn small">
+                <span>Configure</span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-9 9M10 4H6a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg>
+              </button>
+            </div>
+
+            <div class="note-box ok">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+              <span id="driverNote">Bound to VB-Audio Virtual Cable · 48000 Hz · 16-bit stereo.</span>
+            </div>
+          </section>
+        </div>
+
+        <div class="rack-two">
+          <section class="panel" id="section-clipboard">
+            <div class="panel-head">
+              <div class="sec-left">
+                <span class="panel-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 9h8M8 13h8M8 17h5"/></svg>
+                </span>
+                <span class="sec-title">Clipboard history</span>
+              </div>
+              <span class="mono-badge" id="clipBadge">0 / 50 items</span>
+            </div>
+
+            <p class="panel-copy">The newest 50 entries persist across runs in <span class="mono-val">%APPDATA%\OneLink\clipboard.json</span> and are de-duplicated by content hash, so the same text never lands twice.</p>
+
+            <div class="prow">
+              <div class="prow-text"><b>Local cache</b><span id="clipBytes">0 KB of 1 MB</span></div>
+            </div>
+            <div class="meter-track"><span id="clipBar" class="meter-bar"></span></div>
+
+            <div class="prow foot">
+              <span class="sec-note">Saved on this PC only</span>
+              <button type="button" id="clearClipBtn2" class="soft-btn danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13"/></svg>
+                <span>Clear history</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="panel" id="section-about">
+            <div class="panel-head">
+              <div class="sec-left">
+                <span class="panel-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 9h6v6H9z"/><path d="M4 10h-2M4 14h-2M22 10h-2M22 14h-2M10 4V2M14 4V2M10 22v-2M14 22v-2"/></svg>
+                </span>
+                <span class="sec-title">System engine &amp; protocol</span>
+              </div>
+              <span class="sec-note">read-only</span>
+            </div>
+
+            <div class="kv">
+              <div class="kv-row"><span>Client version</span><b id="setVersion">OneLink</b></div>
+              <div class="kv-row"><span>Protocol</span><b id="protoVersion">v1</b></div>
+              <div class="kv-row"><span>Direct socket</span><b class="mono-val">TCP 47110</b></div>
+              <div class="kv-row"><span>Discovery</span><b class="mono-val">_onelink._tcp</b></div>
+            </div>
+
+            <div class="note-box">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg>
+              <span>Closing this window hides OneLink in the system tray; the bridge keeps running until you quit from the tray.</span>
+            </div>
+          </section>
+        </div>
+
+        <section class="panel" id="section-log">
+          <div class="panel-head">
+            <div class="sec-left">
+              <span class="panel-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+              </span>
+              <span class="sec-title">Activity</span>
+            </div>
             <button id="logToggle" class="link-btn">hide</button>
           </div>
           <pre id="log" class="log"></pre>
         </section>
 
-        <section class="card">
-          <div class="card-head"><h2>About</h2></div>
-          <div class="set-row">
-            <div class="set-text"><b>OneLink</b><span id="setVersion">version —</span></div>
-            <span class="state-chip">protocol v1</span>
-          </div>
-          <div class="set-row">
-            <div class="set-text">
-              <b>Closing the window</b>
-              <span>Hides OneLink to the notification area; Quit from the tray icon ends it.</span>
-            </div>
-            <span class="state-chip">tray</span>
-          </div>
-        </section>
       </div>
     </main>
   </div>
