@@ -1,0 +1,29 @@
+# Android build
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.iml
+*.hprof
+
+# Python
+__pycache__/
+*.py[cod]
+pc/.venv/
+pc/venv/
+
+# logs / scratch output
+*.log
+build-final.log
+
+# toolchain (JDK + Android SDK) lives outside the repo
+toolchain/
+
+# local machine paths
+env.sh
+
+# OS junk
+Thumbs.db
+desktop.ini
