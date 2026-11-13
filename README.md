@@ -1,121 +1,134 @@
 # OneLink
 
-Use an Android phone's **microphone** and **camera** on a Windows PC, and (planned) send the
-PC's audio back to the phone. Nothing to root, no virtual-Bluetooth driver, no cloud.
+**Use your phone's microphone and camera on your PC — over Wi-Fi or a USB cable.**
 
-Two halves:
+OneLink turns an Android phone into a wireless mic and camera for a Windows PC. The phone does the
+capturing; the PC just receives. No cloud account, nothing to root, nothing leaves your local
+network.
 
-| Dir | What it is |
-|---|---|
-| `android/` | The phone app (Kotlin, framework only, no AndroidX). One switch, a Quick Settings tile, a foreground service that captures mic + camera and serves them over TCP. |
-| `pc/` | The Windows app (Python + Tk). Finds phones by mDNS or adb, connects, plays the phone mic into VB-Cable and previews the camera. |
-| `PROTOCOL.md` | The wire protocol both sides speak. Read this first. |
+| Phone app | PC — Connect | PC — Settings |
+|---|---|---|
+| <img src="docs/screenshots/phone.png" width="215"> | <img src="docs/screenshots/pc-connect.png" width="440"> | <img src="docs/screenshots/pc-settings.png" width="440"> |
 
-## What works today
+---
 
-- Phone mic → PC, played into **VB-Cable**, so Discord/Zoom/Teams see it as a normal microphone
-  (`CABLE Output`). Verified with a real loopback test (tone out `CABLE Input`, recorded back on
-  `CABLE Output`).
-- Camera → PC preview window (JPEG over TCP), with **rear/front switching** and a **rotate**
-  control (0/90/180/270, applied instantly on the PC side).
-- **PC audio → phone**: speaker toggle captures the PC's output (WASAPI loopback) and plays it on
-  the phone, so it can reach the phone's speaker, or Bluetooth headphones paired to the phone.
-- Discovery: mDNS `_onelink._tcp.`, plus `adb devices` and manual `host:port`.
-- Transport: **adb forward** (fast, wired) or plain **Wi-Fi/LAN** (no adb, no developer options on
-  the PC side; the phone app does the capture itself).
+## What it gives you
 
-Verified against a real phone (Redmi 12, Android 15): hello advertises `audioOut`, `facing`
-switches cameras, camera frames arrive, 0x04 audio is accepted with no errors.
+- **Phone microphone on your PC** — Discord, Zoom, Teams, OBS and anything else see it as a normal
+  microphone, because OneLink feeds it through a virtual audio cable.
+- **Phone camera on your PC** — a live preview window, front or back lens, with rotation.
+- **PC audio on your phone** — send the PC's sound to the phone, so it can reach earbuds paired to
+  the phone.
+- **Clipboard sync** — copy text on one side, paste it on the other, with history on both.
+- **Quiet in the background** — closing the window sends OneLink to the system tray; it keeps
+  working until you quit from there.
+- **One copy only** — clicking the icon again brings the open window forward instead of starting a
+  second app.
 
-## Not there yet
+---
 
-- No encryption. LAN/loopback only.
-- Camera is a preview window, not a virtual webcam device (OBS Virtual Camera can take it later).
+## What you need
 
-## Build the phone app
+- Windows 10 or 11 (64-bit).
+- An Android phone (Android 8 or newer) on the **same Wi-Fi network** as the PC — or a USB cable
+  with USB debugging turned on.
+- **VB-Cable** (free) if you want the phone mic to be selectable as a microphone in other apps:
+  <https://vb-audio.com/Cable/>. Install it once and reboot. Everything else works without it; you
+  just won't have a virtual microphone to pick.
 
-Needs JDK 17 and an Android SDK with `platforms;android-35`, `build-tools;35.0.0`.
+---
+
+## How to use it
+
+**1. Install the PC app.** Run `OneLink-Setup-<version>.exe`. It installs for the current user — no
+admin prompt — and adds a desktop shortcut. OneLink starts in the system tray.
+
+**2. Install the phone app.** Open `OneLink-<version>.apk` on the phone and allow installs from that
+source when Android asks.
+
+**3. Open the phone app and allow the microphone and camera prompts.** That's the entire setup: the
+app starts listening right away and shows its address, e.g. `192.168.0.101:47110`.
+
+**4. On the PC, open OneLink.** Your phone shows up under **Discovered endpoints** within a second
+or two — press **Connect** on its card. If it doesn't appear:
+   - check both devices are on the same Wi-Fi network (guest networks and VPNs hide devices);
+   - or type the address shown on the phone into **Direct endpoint** and press **Resolve**.
+
+**5. Pick what you want** on the **Settings** page — Microphone, Camera, Speaker, Clipboard. Every
+channel has its own switch and nothing is on until you flip it. The camera card also holds
+resolution, frame rate and lens.
+
+**6. Use it.** In Discord/Zoom/Teams/OBS choose `CABLE Output` as the microphone. The camera preview
+appears in the OneLink window.
+
+**7. Put it away.** Close the window — OneLink stays in the tray. Quit from the tray icon when
+you're done.
+
+### Over USB instead of Wi-Fi
+
+Plug the phone in and turn on **USB debugging** (Settings → About phone → tap *Build number* seven
+times, then Developer options → USB debugging). The phone then appears in OneLink as a **USB**
+device. It's the lowest-latency option and doesn't depend on Wi-Fi.
+
+---
+
+## If something doesn't work
+
+- **Phone not listed** — allow OneLink through the Windows firewall the first time it asks; that
+  prompt is what lets it find devices on your network.
+- **Silent mic in the other app** — install VB-Cable, then select `CABLE Output` as the input.
+- **No video** — the phone needs to be unlocked once after opening the app; Android blocks camera
+  capture from the background otherwise.
+- **Choppy video** — drop to 640×480 and 15 fps on the Settings page.
+
+---
+
+## Built with
+
+- **Phone app** — Kotlin on the plain Android framework (no AndroidX, no third-party libraries), a
+  foreground service for capture, and a Quick Settings tile.
+- **PC app** — Python 3 with a pywebview window, a small local HTTP bridge, packaged with
+  PyInstaller.
+- **Networking** — one plain TCP socket between the two devices (port `47110`); devices are found
+  with mDNS (`_onelink._tcp`) or adb; there is no relay server.
+- **Audio** — WASAPI loopback on the PC and the VB-Audio Virtual Cable for the virtual microphone.
+- **Packaging** — Inno Setup for the per-user Windows installer, Gradle for the APK.
+
+The wire format both halves speak is documented in [PROTOCOL.md](PROTOCOL.md).
+
+---
+
+## Downloads
+
+The latest Windows installer and Android APK live on the
+[releases page](https://github.com/Opirajbhor/OneLink-Phone-Sensors-to-PC/releases/latest).
+
+---
+
+<details>
+<summary>For developers — building from source</summary>
+
+Needs JDK 17, Android SDK with `platforms;android-35` / `build-tools;35.0.0`, and Python 3.11+.
 
 ```bash
-export JAVA_HOME=<jdk-17>
-export ANDROID_HOME=<android-sdk>
+# phone app
 cd android && ./gradlew assembleDebug
-# apk: android/app/build/outputs/apk/debug/app-debug.apk
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell pm grant com.onelink android.permission.RECORD_AUDIO
-adb shell pm grant com.onelink android.permission.CAMERA
+# → android/app/build/outputs/apk/debug/app-debug.apk
+
+# PC app
+python -m PyInstaller --noconfirm --onedir --windowed --name OneLink \
+  --paths pc --add-data "pc/onelink/webui;onelink/webui" \
+  --icon pc/onelink/webui/icon.ico --distpath release/app \
+  --hidden-import pystray --hidden-import zeroconf --hidden-import soundcard \
+  --hidden-import numpy entry.py
+
+# installer
+"C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
 ```
 
-`android/local.properties` holds `sdk.dir` and must never be committed.
+Running from source: `pc/run.bat` (tray), `--window` (window), `--serve` (headless, prints a local
+URL), `--selftest` (15 checks including a VB-Cable loopback, no phone needed).
 
-## Run the PC app
+`release/` and `toolchain/` are gitignored — rebuild them, don't commit them.
 
-Run the installer (`release\OneLink-Setup-1.6.exe`) — per-user, no admin prompt — and OneLink
-opens its own window: a device list on the left, the live camera/mic/speaker/clipboard state on
-the right, and a **Settings** tab holding every switch (microphone, camera, speaker, clipboard
-sync), the camera resolution/fps, audio routing and the clipboard history. Closing the window
-hides it to the tray; the tray menu mirrors the switches and has Quit. `--tray` starts with no
-window at all.
-
-From source:
-
-```bat
-pc\run.bat                 :: tray
-pc\run.bat --window        :: the WebView window instead
-pc\run.bat --serve         :: headless, prints the local URL
-pc\run.bat --selftest      :: 15 checks incl. a VB-Cable loopback, no phone needed
-```
-
-Requires Python 3.11+ with `tkinter`, `pillow`, `zeroconf`, `pystray`; VB-Cable for the virtual
-microphone.
-
-## Release artifacts
-
-`release/` holds the built binaries and is gitignored (rebuild them, don't commit them):
-
-| File | What it is |
-|---|---|
-| `release/OneLink-Setup-1.6.exe` | the installer — per-user, optional tray autostart |
-| `release/app/OneLink/` | the packaged app folder the installer wraps |
-| `release/OneLink-v1.3.apk` | the phone app, debug-signed |
-
-Rebuild everything:
-
-```bat
-set JAVA_HOME=C:\Users\Opi\BTBridge\toolchain\jdk\jdk-17.0.21+9
-set ANDROID_HOME=C:\Users\Opi\BTBridge\toolchain\sdk
-cd android && gradlew.bat assembleDebug
-copy app\build\outputs\apk\debug\app-debug.apk ..\release\OneLink-v1.3.apk
-
-python -m PyInstaller --noconfirm --onedir --windowed --name OneLink --paths pc ^
-  --add-data "pc\onelink\webui;onelink\webui" --icon pc\onelink\webui\icon.ico ^
-  --distpath release\app --hidden-import pystray --hidden-import zeroconf ^
-  --hidden-import soundcard --hidden-import numpy entry.py
-
-"C:\Users\Opi\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
-```
-
-## Design notes
-
-- The phone captures its own media, so **no adb is required** — adb is only a faster transport
-  when a cable is plugged in.
-- The phone holds a partial wakelock while serving; without it the OS suspends the tunnel.
-- Audio is raw PCM16 48 kHz mono (no codec, no added latency, ~96 KB/s), camera is JPEG frames.
-- Everything is deliberately tiny: no third-party Android libraries, no native code.
-
-## Why the audio devices are not named "OneLink"
-
-Renaming a Windows audio endpoint means writing its friendly name in
-`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\{Render,Capture}\<guid>\Properties`.
-Those keys are owned by SYSTEM and grant Administrators read-only, so the write is
-refused even from an elevated shell (`Requested registry access is not allowed`),
-and taking ownership (`SeTakeOwnershipPrivilege` enabled, `WRITE_OWNER` open) is
-refused too. Only the audio service may touch them.
-
-So the rename has to happen through Windows itself:
-Settings → System → Sound → All sound devices → pick the device → Rename.
-OneLink has a button for that page (Settings → Audio → "Rename it in Windows").
-
-What OneLink does instead: it finds the virtual cable by *any* of its names —
-"OneLink Speaker / OneLink Microphone" (if you renamed it), "CABLE Input /
-CABLE Output", or the VB-Audio adapter name — so a rename never breaks routing.
+</details>
