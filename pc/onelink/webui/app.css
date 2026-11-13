@@ -1389,9 +1389,37 @@ body { font-size: 14.5px; }
 
 /* rack polish */
 .rack-two { align-items: start; }
-.rack-two .panel { height: 100%; }
 .seg { padding: 7px 6px; }
 .prow-side { align-self: center; }
 .prow-side .state-chip { align-self: center; line-height: 1; }
 .chan-pill, .chan-chip { align-self: flex-end; }
 #section-log .log { max-height: 140px; overflow: auto; }
+
+/* ------------------------------------------------- hardware status bar */
+.hwbar {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  height: 26px; padding: 0 12px;
+  background: var(--surface-container);
+  border-top: 1px solid var(--line);
+  font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+  white-space: nowrap; overflow: hidden;
+}
+.hwbar-left, .hwbar-right { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.hwbar-muted { color: var(--faint); }
+.hwbar-sep { color: var(--line); }
+.hwbar .mono-val { font-size: 10.5px; color: var(--text); }
+
+.chan-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex: 0 0 auto; }
+.chan-latency {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 10.5px; color: var(--muted);
+  background: var(--surface-low); border-radius: 6px; padding: 3px 7px;
+}
+.lat-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--faint); }
+.chan-latency.good .lat-dot { background: var(--good); }
+.chan-latency.bad .lat-dot { background: var(--bad); }
+
+.chan-foot { align-items: center; }
+.chan-side { align-items: flex-end; }
+.chan-meter-head { align-items: baseline; }

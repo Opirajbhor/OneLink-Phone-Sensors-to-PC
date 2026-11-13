@@ -350,7 +350,10 @@
                   <div class="chan-meter-head"><span>Input level</span><span id="micDb" class="mono-val">-∞ dB</span></div>
                   <div class="chan-meter-track"><span id="micBar" class="chan-meter-bar"></span></div>
                 </div>
-                <span class="chan-pill" id="micSink">—</span>
+                <div class="chan-side">
+                  <span class="chan-latency"><span class="lat-dot"></span><span id="micRtt">— ms</span></span>
+                  <span class="chan-pill" id="micSink">—</span>
+                </div>
               </div>
             </article>
 
@@ -373,7 +376,10 @@
                   <span class="chan-chip" id="camSizeChip">640×480</span>
                   <span class="chan-chip" id="camFpsChip">10 fps</span>
                 </div>
-                <span class="chan-pill" id="camFrames">idle</span>
+                <div class="chan-side">
+                  <span class="chan-latency"><span class="lat-dot"></span><span id="camRtt">— ms</span></span>
+                  <span class="chan-pill" id="camFrames">idle</span>
+                </div>
               </div>
             </article>
 
@@ -393,7 +399,10 @@
               </div>
               <div class="chan-foot">
                 <span class="chan-chip" id="spkState">idle</span>
-                <span class="chan-pill" id="spkDevice">loopback</span>
+                <div class="chan-side">
+                  <span class="chan-latency"><span class="lat-dot"></span><span id="spkRtt">— ms</span></span>
+                  <span class="chan-pill" id="spkDevice">loopback</span>
+                </div>
               </div>
             </article>
 
@@ -413,7 +422,9 @@
               </div>
               <div class="chan-foot">
                 <span class="chan-chip" id="clipState">idle</span>
-                <span class="chan-pill" id="clipCount">0 cached clips</span>
+                <div class="chan-side">
+                  <span class="chan-pill" id="clipCount">0 cached clips</span>
+                </div>
               </div>
             </article>
           </div>
@@ -466,6 +477,18 @@
               <button type="button" id="lensBtn" class="soft-btn small">
                 <span id="lensLabel">Back</span>
                 <span class="seg-hint">swap</span>
+              </button>
+            </div>
+
+            <div class="prow split">
+              <div class="prow-text">
+                <b>Preview transform</b>
+                <span>Rotation applied when the frame is drawn, no re-encode.</span>
+              </div>
+              <button type="button" id="rotCycle" class="soft-btn small">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 11-3-6.7M21 3v6h-6"/></svg>
+                <span class="mono-val" id="rotValue">0°</span>
+                <span class="seg-hint">cycle</span>
               </button>
             </div>
 
@@ -591,6 +614,23 @@
 
       </div>
     </main>
+
+    <footer class="hwbar">
+      <div class="hwbar-left">
+        <span class="dot dot-good"></span>
+        <span>Local network engine</span>
+        <span class="hwbar-sep">·</span>
+        <span class="hwbar-muted">zero relay</span>
+        <span class="hwbar-sep">·</span>
+        <span class="hwbar-muted" id="hwbarMdns">mDNS idle</span>
+      </div>
+      <div class="hwbar-right">
+        <span class="hwbar-muted">Socket</span>
+        <span class="mono-val" id="hwbarSocket">TCP 47110</span>
+        <span class="hwbar-sep">·</span>
+        <span class="mono-val" id="hwbarIp">—</span>
+      </div>
+    </footer>
   </div>
   <script src="app.js"></script>
 </body>

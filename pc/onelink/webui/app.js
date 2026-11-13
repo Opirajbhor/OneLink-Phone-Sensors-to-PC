@@ -475,6 +475,23 @@ function renderSettings(state) {
     : "VB-Audio endpoint not found — install the OneLink audio driver pair.";
 
   /* system panel */
+  const rtt = (state.conn || {}).rtt_ms;
+  const rttText = rtt ? rtt.toFixed(1) + " ms" : "— ms";
+  for (const id of ["micRtt", "camRtt", "spkRtt"]) {
+    const el = $(id);
+    if (!el) continue;
+    el.textContent = rttText;
+    const box = el.parentElement;
+    box.classList.toggle("good", !!rtt && rtt < 120);
+    box.classList.toggle("bad", !!rtt && rtt >= 120);
+  }
+  $("rotValue").textContent = rotation + "°";
+
+  const net = state.net || {};
+  $("hwbarMdns").textContent = net.mdns ? "mDNS browsing" : "mDNS off";
+  $("hwbarSocket").textContent = "TCP " + (net.port || 47110);
+  $("hwbarIp").textContent = net.local_ip || "—";
+
   $("setVersion").textContent = "OneLink " + (state.version || "—") + " (Windows x64)";
   $("protoVersion").textContent = "OneLink Protocol v1";
 }
@@ -555,6 +572,10 @@ $("lensBtn").addEventListener("click", () => {
   facing = facing === "back" ? "front" : "back";
   setFacingUI(facing);
   pushCfg();
+});
+$("rotCycle").addEventListener("click", () => {
+  setRotation((rotation + 90) % 360);
+  $("rotValue").textContent = rotation + "°";
 });
 $("rackRescan").addEventListener("click", refresh);
 $("rackApply").addEventListener("click", () => pushCfg());
