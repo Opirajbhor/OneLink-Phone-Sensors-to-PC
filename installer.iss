@@ -2,7 +2,7 @@
 ; Per-user install (no admin prompt), tray autostart optional.
 
 #define AppName "OneLink"
-#define AppVersion "1.4"
+#define AppVersion "1.5"
 #define AppExe "OneLink.exe"
 
 [Setup]

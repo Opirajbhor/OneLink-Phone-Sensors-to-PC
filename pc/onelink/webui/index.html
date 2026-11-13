@@ -93,10 +93,6 @@
             <h2>Camera</h2>
             <div class="head-right">
               <span id="camMeta" class="meta">no frames</span>
-              <label class="switch">
-                <input type="checkbox" id="camToggle">
-                <span class="track"><span class="thumb"></span></span>
-              </label>
             </div>
           </div>
           <div id="camStage" class="stage">
@@ -107,7 +103,7 @@
                 <circle cx="12" cy="13" r="4"/>
               </svg>
               <p>Camera preview appears here</p>
-              <small>Turn on Camera to start streaming</small>
+              <small>Turn Camera on in Settings to start streaming</small>
             </div>
             <canvas id="camCanvas"></canvas>
           </div>
@@ -132,10 +128,7 @@
           <div class="card control">
             <div class="card-head">
               <h2>Microphone</h2>
-              <label class="switch">
-                <input type="checkbox" id="micToggle">
-                <span class="track"><span class="thumb"></span></span>
-              </label>
+              <span id="micState" class="meta">off</span>
             </div>
             <div class="meter"><div id="micBar" class="meter-fill"></div></div>
             <div class="control-foot">
@@ -147,10 +140,7 @@
           <div class="card control">
             <div class="card-head">
               <h2>Speaker</h2>
-              <label class="switch">
-                <input type="checkbox" id="spkToggle">
-                <span class="track"><span class="thumb"></span></span>
-              </label>
+              <span id="spkState" class="meta">off</span>
             </div>
             <div class="meter"><div id="spkBar" class="meter-fill spk"></div></div>
             <div class="control-foot">
@@ -165,10 +155,6 @@
             <h2>Clipboard</h2>
             <div class="head-right">
               <span id="clipMeta" class="meta">sync off</span>
-              <label class="switch">
-                <input type="checkbox" id="clipToggle">
-                <span class="track"><span class="thumb"></span></span>
-              </label>
             </div>
           </div>
           <ul id="clipList" class="clip-list"></ul>
@@ -198,30 +184,41 @@
               <b>Microphone</b>
               <span>Phone mic into the virtual microphone on this PC.</span>
             </div>
-            <span id="setMicState" class="state-chip">off</span>
+            <label class="switch">
+              <input type="checkbox" id="micToggle">
+              <span class="track"><span class="thumb"></span></span>
+            </label>
           </div>
           <div class="set-row">
             <div class="set-text">
               <b>Camera</b>
               <span>Phone camera frames into the preview window.</span>
             </div>
-            <span id="setCamState" class="state-chip">off</span>
+            <label class="switch">
+              <input type="checkbox" id="camToggle">
+              <span class="track"><span class="thumb"></span></span>
+            </label>
           </div>
           <div class="set-row">
             <div class="set-text">
               <b>Speaker</b>
               <span>PC sound sent to the phone, for Bluetooth or wired headphones.</span>
             </div>
-            <span id="setSpkState" class="state-chip">off</span>
+            <label class="switch">
+              <input type="checkbox" id="spkToggle">
+              <span class="track"><span class="thumb"></span></span>
+            </label>
           </div>
           <div class="set-row">
             <div class="set-text">
               <b>Clipboard sync</b>
               <span>Two-way text with history on both sides.</span>
             </div>
-            <span id="setClipState" class="state-chip">off</span>
+            <label class="switch">
+              <input type="checkbox" id="clipToggle">
+              <span class="track"><span class="thumb"></span></span>
+            </label>
           </div>
-          <p class="set-note">The switches themselves live on the Connect page. All four start off.</p>
         </section>
 
         <section class="card">

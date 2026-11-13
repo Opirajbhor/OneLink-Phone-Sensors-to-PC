@@ -50,10 +50,12 @@ adb shell pm grant com.onelink android.permission.CAMERA
 
 ## Run the PC app
 
-Run the installer (`release\OneLink-Setup-1.3.exe`) and OneLink starts in the **system tray** —
-no window, no WebView process. Right-click the tray icon for Microphone / Camera / Speaker /
-Clipboard toggles, or "Open OneLink" to use the UI in your browser. Idle cost measured on this
-machine: **~57 MB RAM, ~0.6 s CPU per minute**, versus ~200 MB for the WebView window.
+Run the installer (`release\OneLink-Setup-1.5.exe`) — per-user, no admin prompt — and OneLink
+opens its own window: a device list on the left, the live camera/mic/speaker/clipboard state on
+the right, and a **Settings** tab holding every switch (microphone, camera, speaker, clipboard
+sync), the camera resolution/fps, audio routing and the clipboard history. Closing the window
+hides it to the tray; the tray menu mirrors the switches and has Quit. `--tray` starts with no
+window at all.
 
 From source:
 
@@ -73,7 +75,7 @@ microphone.
 
 | File | What it is |
 |---|---|
-| `release/OneLink-Setup-1.3.exe` | the installer — per-user, optional tray autostart |
+| `release/OneLink-Setup-1.5.exe` | the installer — per-user, optional tray autostart |
 | `release/app/OneLink/` | the packaged app folder the installer wraps |
 | `release/OneLink-v1.3.apk` | the phone app, debug-signed |
 

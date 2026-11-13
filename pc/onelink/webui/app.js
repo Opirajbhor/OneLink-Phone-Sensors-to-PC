@@ -265,29 +265,27 @@ function setRotation(next) {
   if (lastFrameImg) drawFrame(lastFrameImg);
 }
 
-/* Settings page: read-only mirrors of the live state. */
+/* Settings page mirrors, plus the Connect page's read-only state labels. */
 function renderSettings(state) {
-  const onOff = (el, on) => {
-    const node = $(el);
-    if (!node) return;
-    node.textContent = on ? "on" : "off";
-    node.classList.toggle("on", !!on);
-  };
-  onOff("setMicState", (state.mic || {}).enabled);
-  onOff("setCamState", (state.cam || {}).enabled);
-  onOff("setSpkState", (state.spk || {}).enabled);
-  onOff("setClipState", (state.clip || {}).enabled);
-  const clip = state.clip || {};
-  $("setClipCount").textContent = String((clip.items || []).length);
   const mic = state.mic || {};
+  const cam = state.cam || {};
+  const spk = state.spk || {};
+  const clip = state.clip || {};
+  const meta = (id, on) => {
+    const node = $(id);
+    if (node) node.textContent = on ? "on" : "off";
+  };
+  meta("micState", mic.enabled);
+  meta("spkState", spk.enabled);
+  $("setClipCount").textContent = String((clip.items || []).length);
   if (mic.sink) $("setSinkName").textContent = mic.sink;
   const sinkOk = $("setSinkState");
   sinkOk.textContent = mic.sink_ok ? "ready" : "missing";
   sinkOk.classList.toggle("on", !!mic.sink_ok);
   $("setVersion").textContent = "version " + (state.version || "—");
   const note = $("camSizeNote");
-  if (note) note.textContent = ((state.cam || {}).size || "640x480") + " · " +
-    Math.round((state.cam || {}).fps || 0) + " fps";
+  if (note) note.textContent = (cam.size || "640x480") + " · " +
+    Math.round(cam.fps || 0) + " fps";
 }
 
 function renderClip(state) {
