@@ -18,6 +18,9 @@ pc/venv/
 *.log
 build-final.log
 
+# built artifacts
+release/
+
 # toolchain (JDK + Android SDK) lives outside the repo
 toolchain/
 

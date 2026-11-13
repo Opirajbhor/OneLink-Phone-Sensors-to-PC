@@ -54,6 +54,23 @@ pc\run.bat --selftest :: 15 checks incl. a VB-Cable loopback, no phone needed
 Requires Python 3.11+ with `tkinter`, `pillow`, `zeroconf`; VB-Cable for the virtual microphone.
 `run.bat` finds a suitable interpreter automatically.
 
+## Release artifacts
+
+`release/` holds the built binaries and is gitignored (rebuild them, don't commit them):
+
+| File | What it is |
+|---|---|
+| `release/BTBridge.exe` | the Windows client, self-contained (no Python needed) |
+| `release/BTBridge-v1.0.apk` | the phone app, debug-signed |
+
+Rebuild the exe:
+
+```bat
+python -m pip install pyinstaller
+python -m PyInstaller --onefile --windowed --name BTBridge --paths pc ^
+  --distpath release --hidden-import zeroconf --hidden-import PIL._tkinter_finder entry.py
+```
+
 ## Design notes
 
 - The phone captures its own media, so **no adb is required** — adb is only a faster transport
