@@ -275,7 +275,7 @@ class Bridge:
                 self.size = size
             self.facing = "front" if str(facing).lower() == "front" else "back"
             try:
-                self.fps = max(1.0, min(30.0, float(fps)))
+                self.fps = max(1.0, min(60.0, float(fps)))
             except (TypeError, ValueError):
                 pass
         self._sync_sender()

@@ -222,7 +222,11 @@ function renderCam(state) {
   const stack = document.querySelector(".stack");
   if (stack) stack.classList.toggle("camoff", !cam.enabled);
   if (cam.size && document.activeElement !== $("sizeSel")) $("sizeSel").value = cam.size;
-  if (cam.fps && document.activeElement !== $("fpsInput")) $("fpsInput").value = cam.fps;
+  if (cam.fps && document.activeElement !== $("fpsInput")) {
+    const want = String(Math.round(cam.fps));
+    const sel = $("fpsInput");
+    if ([...sel.options].some((o) => o.value === want)) sel.value = want;
+  }
   if (cam.facing && cam.facing !== facing) {
     facing = cam.facing;
     setFacingUI(facing);

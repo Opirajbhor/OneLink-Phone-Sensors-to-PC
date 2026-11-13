@@ -240,10 +240,16 @@
           <div class="set-row">
             <div class="set-text">
               <b>Frame rate</b>
-              <span>Frames per second, 1 – 30.</span>
+              <span>Frames per second. Above 30 costs bandwidth and heat.</span>
             </div>
             <label class="field compact">
-              <input id="fpsInput" type="number" min="1" max="30" value="10">
+              <select id="fpsInput">
+                <option value="10" selected>10 fps</option>
+                <option value="15">15 fps</option>
+                <option value="30">30 fps</option>
+                <option value="45">45 fps</option>
+                <option value="60">60 fps</option>
+              </select>
             </label>
           </div>
           <div class="set-row">

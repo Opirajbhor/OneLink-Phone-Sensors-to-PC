@@ -50,7 +50,7 @@ adb shell pm grant com.onelink android.permission.CAMERA
 
 ## Run the PC app
 
-Run the installer (`release\OneLink-Setup-1.5.exe`) — per-user, no admin prompt — and OneLink
+Run the installer (`release\OneLink-Setup-1.6.exe`) — per-user, no admin prompt — and OneLink
 opens its own window: a device list on the left, the live camera/mic/speaker/clipboard state on
 the right, and a **Settings** tab holding every switch (microphone, camera, speaker, clipboard
 sync), the camera resolution/fps, audio routing and the clipboard history. Closing the window
@@ -75,7 +75,7 @@ microphone.
 
 | File | What it is |
 |---|---|
-| `release/OneLink-Setup-1.5.exe` | the installer — per-user, optional tray autostart |
+| `release/OneLink-Setup-1.6.exe` | the installer — per-user, optional tray autostart |
 | `release/app/OneLink/` | the packaged app folder the installer wraps |
 | `release/OneLink-v1.3.apk` | the phone app, debug-signed |
 
