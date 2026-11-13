@@ -1,16 +1,15 @@
-"""Tray-first mode: no window, no WebView — the UI opens in the browser on demand.
+"""Tray-only mode: toggles in the notification area, no window at all.
 
-Idle cost is one Python process: pystray + the discovery/clipboard threads.
-Nothing polls the audio stack until Speaker is switched on, and the camera only
-streams while a window has it enabled. That is what keeps CPU and RAM low.
+Used by `--tray` and as the fallback when pywebview cannot start. No browser
+hand-off here on purpose — the normal app is a real window
+(`desktop.run_app`); this mode exists for sign-in autostart where the user
+wants zero windows.
 """
 
 from __future__ import annotations
 
 import os
-import webbrowser
 
-from .server import UiServer
 from .webhost import Bridge
 
 
@@ -23,51 +22,27 @@ def _icon_image():
 def run_tray(initial_host: str | None = None) -> int:
     try:
         import pystray
-    except Exception:  # noqa: BLE001
-        from .webhost import run_gui
-        return run_gui(initial_host)
+    except Exception as exc:  # noqa: BLE001
+        print("pystray is not available (%s). Install it with: pip install pystray" % exc)
+        return 2
 
     bridge = Bridge(initial_host)
-    server = UiServer(bridge)
-
-    def apply():
-        bridge.set_cfg(bridge.mic_enabled, bridge.cam_enabled, bridge.size, bridge.fps,
-                       bridge.facing, bridge.spk_enabled, bridge.mute_pc,
-                       bridge.clip_enabled)
-
-    def open_ui(icon=None, item=None):
-        webbrowser.open(server.start())
-
-    def toggle_mic(icon, item):
-        bridge.mic_enabled = not bridge.mic_enabled
-        apply()
-
-    def toggle_cam(icon, item):
-        bridge.cam_enabled = not bridge.cam_enabled
-        apply()
-
-    def toggle_spk(icon, item):
-        bridge.spk_enabled = not bridge.spk_enabled
-        apply()
-
-    def toggle_clip(icon, item):
-        bridge.clip_enabled = not bridge.clip_enabled
-        apply()
 
     def quit_app(icon, item):
         try:
-            server.stop()
             bridge.shutdown()
         finally:
             icon.stop()
 
     menu = pystray.Menu(
-        pystray.MenuItem("Open OneLink", open_ui, default=True),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem("Microphone", toggle_mic, checked=lambda item: bridge.mic_enabled),
-        pystray.MenuItem("Camera", toggle_cam, checked=lambda item: bridge.cam_enabled),
-        pystray.MenuItem("Speaker", toggle_spk, checked=lambda item: bridge.spk_enabled),
-        pystray.MenuItem("Clipboard sync", toggle_clip, checked=lambda item: bridge.clip_enabled),
+        pystray.MenuItem("Microphone", lambda i, it: bridge.set_mic(not bridge.mic_enabled),
+                         checked=lambda it: bridge.mic_enabled),
+        pystray.MenuItem("Camera", lambda i, it: bridge.set_cam(not bridge.cam_enabled),
+                         checked=lambda it: bridge.cam_enabled),
+        pystray.MenuItem("Speaker", lambda i, it: bridge.set_spk(not bridge.spk_enabled),
+                         checked=lambda it: bridge.spk_enabled),
+        pystray.MenuItem("Clipboard sync", lambda i, it: bridge.set_clip(not bridge.clip_enabled),
+                         checked=lambda it: bridge.clip_enabled),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem("Quit", quit_app),
     )
@@ -75,6 +50,5 @@ def run_tray(initial_host: str | None = None) -> int:
     try:
         icon.run()
     finally:
-        server.stop()
         bridge.shutdown()
     return 0

@@ -186,9 +186,20 @@ def set_default_render(endpoint_id: str, all_roles: bool = True) -> bool:
 
 
 def find_by_name(fragment: str) -> dict | None:
-    """First playback endpoint whose name contains `fragment` (case-insensitive)."""
-    frag = fragment.lower()
-    for dev in render_devices():
+    """Playback endpoint matching `fragment`, exact name first.
+
+    Exact-first matters: a loose substring match turns "Speakers" into
+    "FxSound Speakers" and the PC ends up muted on the wrong device.
+    """
+    frag = fragment.lower().strip()
+    devices = render_devices()
+    for dev in devices:
+        if dev["name"].lower().strip() == frag:
+            return dev
+    for dev in devices:
+        if dev["name"].lower().startswith(frag):
+            return dev
+    for dev in devices:
         if frag in dev["name"].lower():
             return dev
     return None

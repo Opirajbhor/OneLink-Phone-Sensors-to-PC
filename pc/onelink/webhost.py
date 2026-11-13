@@ -10,7 +10,9 @@ them, so Pillow is not needed here.
 
 from __future__ import annotations
 
+import atexit
 import base64
+import json
 import os
 import threading
 import time
@@ -49,18 +51,21 @@ class Bridge:
         self.conn_state = "idle"          # idle | connecting | connected | error
         self.conn_name = ""
         self.conn_detail = ""
-        self.mic_enabled = True
-        self.cam_enabled = True
+        self.mic_enabled = False
+        self.cam_enabled = False
         self.spk_enabled = False
         self.size = "640x480"
         self.fps = 10.0
         self.facing = "back"
         self.mute_pc = True
-        self.clip_enabled = True
+        self.clip_enabled = False
         self.clip = None          # ClipboardWatcher, created below
         self.sender: audio_out.LoopbackSender | None = None
         self._saved_default: str | None = None
         self._switched_to: str = ""
+        self._playback_marker = os.path.join(
+            os.environ.get("APPDATA") or os.path.expanduser("~"),
+            "OneLink", "playback.json")
 
         self.level = 0.0
         self._frame: bytes | None = None
@@ -76,6 +81,8 @@ class Bridge:
         self.adb_path = discovery.find_adb()
         self._forwarded_serial: str | None = None
         self._closing = False
+        atexit.register(self._restore_default)
+        self._recover_playback()
 
         self._log("OneLink %s — protocol v1" % self._ui_version)
         adb_label = "not found (USB discovery off)"
@@ -231,6 +238,28 @@ class Bridge:
                              args=(self.adb_path, serial), daemon=True).start()
         return True
 
+    def _apply(self) -> bool:
+        """Re-send the whole config (the protocol's single-source-of-truth rule)."""
+        return self.set_cfg(self.mic_enabled, self.cam_enabled, self.size, self.fps,
+                            self.facing, self.spk_enabled, self.mute_pc,
+                            self.clip_enabled)
+
+    def set_mic(self, on: bool) -> bool:
+        self.mic_enabled = bool(on)
+        return self._apply()
+
+    def set_cam(self, on: bool) -> bool:
+        self.cam_enabled = bool(on)
+        return self._apply()
+
+    def set_spk(self, on: bool) -> bool:
+        self.spk_enabled = bool(on)
+        return self._apply()
+
+    def set_clip(self, on: bool) -> bool:
+        self.clip_enabled = bool(on)
+        return self._apply()
+
     def set_cfg(self, mic: bool, cam: bool, size: str, fps: float,
                 facing: str = "back", audio_out_on: bool = False,
                 mute_pc: bool = True, clip_on: bool = True) -> bool:
@@ -260,18 +289,28 @@ class Bridge:
         VB-Cable so the PC goes quiet, and put the old device back on stop.
         """
         want = self.spk_enabled and self._client.is_connected
+        if self._switched_to and (not self.mute_pc or not want):
+            # muting is no longer wanted: undo the device switch right away
+            self._restore_default()
         if want and self.sender is None:
             self._saved_default = (audio_devices.default_render_id()
                                    if audio_devices is not None else None)
             target = None
             self._switched_to = ""
             if self.mute_pc and audio_devices is not None:
-                cable = audio_devices.find_by_name("CABLE Input")
-                if cable is not None and audio_devices.set_default_render(cable["id"]):
-                    time.sleep(0.25)
-                    target = cable["name"]
-                    self._switched_to = cable["name"]
-                    self._log("speaker: default playback → %r (PC silent)" % cable["name"])
+                cable = (audio_devices.find_by_name("OneLink Speaker")
+                         or audio_devices.find_by_name("CABLE Input")
+                         or audio_devices.find_by_name("VB-Audio"))
+                if cable is not None:
+                    previous = self._saved_default or ""
+                    if previous:
+                        self._write_marker(previous, cable["id"])
+                    if audio_devices.set_default_render(cable["id"]):
+                        time.sleep(0.25)
+                        target = cable["name"]
+                        self._switched_to = cable["name"]
+                        self._log("speaker: default playback → %r (PC silent)" % cable["name"])
+                        self._write_marker(previous, cable["id"])
             s = audio_out.LoopbackSender(
                 on_frame=lambda pcm: self._client.send_frame(0x04, pcm),
                 speaker_name=target)
@@ -287,18 +326,86 @@ class Bridge:
             self._restore_default()
             self._log("speaker: stopped")
 
-    def _restore_default(self):
-        """Put the playback device back the way we found it."""
-        if not self._switched_to:
+    # ------------------------------------------------------ playback device
+    def _write_marker(self, previous: str, switched: str):
+        try:
+            os.makedirs(os.path.dirname(self._playback_marker), exist_ok=True)
+            with open(self._playback_marker, "w", encoding="utf-8") as fh:
+                json.dump({"previous": previous, "switched_to": switched,
+                           "ts": int(time.time())}, fh)
+        except OSError:
+            pass
+
+    def _read_marker(self) -> dict | None:
+        try:
+            with open(self._playback_marker, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+            return data if isinstance(data, dict) else None
+        except (OSError, ValueError):
+            return None
+
+    def _clear_marker(self):
+        try:
+            os.remove(self._playback_marker)
+        except OSError:
+            pass
+
+    def _recover_playback(self):
+        """Undo a leftover switch after a crash or a hard kill.
+
+        The marker is written before the default changes and removed only after
+        it has been restored, so its presence at start means we died holding it.
+        """
+        marker = self._read_marker()
+        if not marker:
             return
-        if audio_devices is not None and self._saved_default:
-            if audio_devices.set_default_render(self._saved_default):
-                self._log("speaker: playback restored to %s"
-                          % (audio_devices.default_render_name() or "previous device"))
-            else:
-                self._log("speaker: could not restore the previous playback device")
-        self._switched_to = ""
-        self._saved_default = None
+        previous = marker.get("previous")
+        switched = marker.get("switched_to")
+        if audio_devices is not None and previous:
+            current = audio_devices.default_render_id()
+            if not (switched and current and current != switched):
+                if audio_devices.set_default_render(previous):
+                    self._log("speaker: restored %s after an unclean exit"
+                              % (audio_devices.default_render_name() or "playback device"))
+                else:
+                    self._log("speaker: could not restore the playback device")
+        self._clear_marker()
+
+    def _restore_default(self):
+        """Put the playback device back the way we found it.
+
+        Runs on speaker-off, on disconnect, on Quit and again from ``atexit``,
+        so an ordinary exit never leaves the PC muted.
+        """
+        if audio_devices is None:
+            self._switched_to = ""
+            self._saved_default = None
+            self._clear_marker()
+            return
+        target = self._saved_default
+        if not target:
+            marker = self._read_marker()
+            target = marker.get("previous") if marker else None
+        if not target:
+            self._switched_to = ""
+            self._saved_default = None
+            self._clear_marker()
+            return
+        current = audio_devices.default_render_id()
+        if current == target:
+            self._switched_to = ""
+            self._saved_default = None
+            self._clear_marker()
+            return
+        if audio_devices.set_default_render(target):
+            self._log("speaker: playback restored to %s"
+                      % (audio_devices.default_render_name() or "previous device"))
+            self._switched_to = ""
+            self._saved_default = None
+            self._clear_marker()
+        else:
+            # keep the marker: the next start tries again
+            self._log("speaker: could not restore the previous playback device")
 
     def _push_cfg(self):
         if not self._client.is_connected:
@@ -397,6 +504,23 @@ class Bridge:
         if self.clip is not None:
             self.clip.apply_remote(text, clip_id or None)
         self._log("clipboard ← phone: %d chars" % len(text))
+
+    def open_sound_settings(self) -> bool:
+        """Open Windows' own Sound page — only it may rename an endpoint."""
+        try:
+            os.startfile("ms-settings:sound")
+            return True
+        except Exception:  # noqa: BLE001
+            return False
+
+    def clear_clip_history(self) -> bool:
+        if self.clip is None:
+            return False
+        with self.clip._lock:
+            self.clip.history.clear()
+            self.clip._save_history()
+        self._log("clipboard: history cleared")
+        return True
 
     def copy_to_clip(self, text: str) -> bool:
         """UI action: put a history entry back on the clipboard."""

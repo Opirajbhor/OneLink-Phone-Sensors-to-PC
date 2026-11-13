@@ -78,7 +78,8 @@ def find_cable_output(devices=None):
     devices = list_capture_devices() if devices is None else devices
     for i, name, ch in devices:
         low = name.lower()
-        if "cable output" in low or ("vb-audio" in low and "output" in low):
+        if ("cable output" in low or "onelink microphone" in low
+                or ("vb-audio" in low and "output" in low)):
             return (i, name, ch)
     return None
 

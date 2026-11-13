@@ -21,6 +21,11 @@
         </div>
       </div>
 
+      <nav class="tabs" role="tablist">
+        <button class="tab active" data-page="connect" role="tab">Connect</button>
+        <button class="tab" data-page="settings" role="tab">Settings</button>
+      </nav>
+
       <div class="top-actions">
         <div id="statusPill" class="pill pill-idle">
           <span class="dot"></span><span id="statusText">Searching…</span>
@@ -34,9 +39,9 @@
       </div>
     </header>
 
-    <main class="grid">
+    <!-- ================================================== connect page -->
+    <main id="pageConnect" class="grid page active">
 
-      <!-- ------------------------------------------------ devices -->
       <section class="card devices">
         <div class="card-head">
           <h2>Nearby phones</h2>
@@ -81,7 +86,6 @@
         </div>
       </section>
 
-      <!-- ------------------------------------------------ right column -->
       <section class="stack">
 
         <div class="card camera-card">
@@ -120,19 +124,7 @@
               <span id="rotLabel">0°</span>
             </button>
             <span class="spacer"></span>
-            <label class="field compact">
-              <span>Size</span>
-              <select id="sizeSel">
-                <option>1280x720</option>
-                <option selected>640x480</option>
-                <option>960x540</option>
-                <option>320x240</option>
-              </select>
-            </label>
-            <label class="field compact">
-              <span>fps</span>
-              <input id="fpsInput" type="number" min="1" max="30" value="10">
-            </label>
+            <span id="camSizeNote" class="meta">640x480 · 10 fps</span>
           </div>
         </div>
 
@@ -161,10 +153,6 @@
               </label>
             </div>
             <div class="meter"><div id="spkBar" class="meter-fill spk"></div></div>
-            <label class="mini-check">
-              <input type="checkbox" id="muteChk" checked>
-              <span>Silence PC speakers while streaming</span>
-            </label>
             <div class="control-foot">
               <span id="streamStats" class="meta">idle</span>
               <span id="spkRoute" class="route">PC sound → phone</span>
@@ -176,9 +164,9 @@
           <div class="card-head">
             <h2>Clipboard</h2>
             <div class="head-right">
-              <span id="clipMeta" class="meta">sync on</span>
+              <span id="clipMeta" class="meta">sync off</span>
               <label class="switch">
-                <input type="checkbox" id="clipToggle" checked>
+                <input type="checkbox" id="clipToggle">
                 <span class="track"><span class="thumb"></span></span>
               </label>
             </div>
@@ -197,6 +185,141 @@
           <pre id="log" class="log"></pre>
         </div>
       </section>
+    </main>
+
+    <!-- ================================================= settings page -->
+    <main id="pageSettings" class="page settings">
+      <div class="settings-wrap">
+
+        <section class="card">
+          <div class="card-head"><h2>Streaming</h2></div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Microphone</b>
+              <span>Phone mic into the virtual microphone on this PC.</span>
+            </div>
+            <span id="setMicState" class="state-chip">off</span>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Camera</b>
+              <span>Phone camera frames into the preview window.</span>
+            </div>
+            <span id="setCamState" class="state-chip">off</span>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Speaker</b>
+              <span>PC sound sent to the phone, for Bluetooth or wired headphones.</span>
+            </div>
+            <span id="setSpkState" class="state-chip">off</span>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Clipboard sync</b>
+              <span>Two-way text with history on both sides.</span>
+            </div>
+            <span id="setClipState" class="state-chip">off</span>
+          </div>
+          <p class="set-note">The switches themselves live on the Connect page. All four start off.</p>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Camera</h2></div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Resolution</b>
+              <span>Lower is smoother over Wi-Fi.</span>
+            </div>
+            <label class="field compact">
+              <select id="sizeSel">
+                <option>1280x720</option>
+                <option selected>640x480</option>
+                <option>960x540</option>
+                <option>320x240</option>
+              </select>
+            </label>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Frame rate</b>
+              <span>Frames per second, 1 – 30.</span>
+            </div>
+            <label class="field compact">
+              <input id="fpsInput" type="number" min="1" max="30" value="10">
+            </label>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Rotation</b>
+              <span>Turn the picture without touching the phone.</span>
+            </div>
+            <button type="button" id="rotateBtn2" class="ghost-btn tiny">
+              <span id="rotLabel2">0°</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>Audio</h2></div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Silence the PC while streaming</b>
+              <span>Moves the Windows default playback to VB-Cable and puts it back when
+                streaming stops or the app exits.</span>
+            </div>
+            <label class="switch">
+              <input type="checkbox" id="muteChk" checked>
+              <span class="track"><span class="thumb"></span></span>
+            </label>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Virtual microphone</b>
+              <span id="setSinkName">CABLE Input</span>
+            </div>
+            <span id="setSinkState" class="state-chip">ready</span>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Rename it in Windows</b>
+              <span>Windows keeps endpoint names to itself: Settings → Sound → All sound
+                devices → rename. OneLink picks the device up whatever it is called.</span>
+            </div>
+            <button type="button" id="openSoundBtn" class="ghost-btn tiny">Open</button>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Clipboard history</h2>
+            <button id="clearClipBtn" class="link-btn">clear</button>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Kept on this PC</b>
+              <span>Newest first, up to 50 entries, saved between runs.</span>
+            </div>
+            <span id="setClipCount" class="state-chip">0</span>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-head"><h2>About</h2></div>
+          <div class="set-row">
+            <div class="set-text"><b>OneLink</b><span id="setVersion">version —</span></div>
+            <span class="state-chip">protocol v1</span>
+          </div>
+          <div class="set-row">
+            <div class="set-text">
+              <b>Closing the window</b>
+              <span>Hides OneLink to the notification area; Quit from the tray icon ends it.</span>
+            </div>
+            <span class="state-chip">tray</span>
+          </div>
+        </section>
+
+      </div>
     </main>
   </div>
   <script src="app.js"></script>

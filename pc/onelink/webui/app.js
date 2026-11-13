@@ -260,7 +260,34 @@ function setFacingUI(value) {
 function setRotation(next) {
   rotation = ((next % 360) + 360) % 360;
   $("rotLabel").textContent = rotation + "°";
+  const r2 = $("rotLabel2");
+  if (r2) r2.textContent = rotation + "°";
   if (lastFrameImg) drawFrame(lastFrameImg);
+}
+
+/* Settings page: read-only mirrors of the live state. */
+function renderSettings(state) {
+  const onOff = (el, on) => {
+    const node = $(el);
+    if (!node) return;
+    node.textContent = on ? "on" : "off";
+    node.classList.toggle("on", !!on);
+  };
+  onOff("setMicState", (state.mic || {}).enabled);
+  onOff("setCamState", (state.cam || {}).enabled);
+  onOff("setSpkState", (state.spk || {}).enabled);
+  onOff("setClipState", (state.clip || {}).enabled);
+  const clip = state.clip || {};
+  $("setClipCount").textContent = String((clip.items || []).length);
+  const mic = state.mic || {};
+  if (mic.sink) $("setSinkName").textContent = mic.sink;
+  const sinkOk = $("setSinkState");
+  sinkOk.textContent = mic.sink_ok ? "ready" : "missing";
+  sinkOk.classList.toggle("on", !!mic.sink_ok);
+  $("setVersion").textContent = "version " + (state.version || "—");
+  const note = $("camSizeNote");
+  if (note) note.textContent = ((state.cam || {}).size || "640x480") + " · " +
+    Math.round((state.cam || {}).fps || 0) + " fps";
 }
 
 function renderClip(state) {
@@ -344,6 +371,7 @@ async function tick() {
     renderCam(state);
     renderSpk(state);
     renderClip(state);
+    renderSettings(state);
     renderStats(state);
     renderLog(state);
   } catch (err) {
@@ -398,6 +426,26 @@ for (const b of document.querySelectorAll("#facingSeg button")) {
   });
 }
 $("rotateBtn").addEventListener("click", () => setRotation(rotation + 90));
+$("rotateBtn2").addEventListener("click", () => setRotation(rotation + 90));
+$("clearClipBtn").addEventListener("click", async () => {
+  await call("clear_clip_history");
+  renderClip.sig = null;
+});
+$("openSoundBtn").addEventListener("click", () => call("open_sound_settings"));
+
+/* pages: Connect / Settings, LocalSend-style tabs */
+function showPage(name) {
+  for (const b of document.querySelectorAll(".tab")) {
+    b.classList.toggle("active", b.dataset.page === name);
+  }
+  $("pageConnect").classList.toggle("active", name === "connect");
+  $("pageSettings").classList.toggle("active", name === "settings");
+  if (lastFrameImg) setTimeout(() => drawFrame(lastFrameImg), 60);
+}
+for (const b of document.querySelectorAll(".tab")) {
+  b.addEventListener("click", () => showPage(b.dataset.page));
+}
+
 window.addEventListener("resize", () => {
   if (lastFrameImg) drawFrame(lastFrameImg);
 });

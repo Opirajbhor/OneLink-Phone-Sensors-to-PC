@@ -25,7 +25,7 @@ CONTENT_TYPES = {
 }
 
 API_METHODS = ("state", "refresh", "add_manual", "select", "connect", "disconnect",
-               "set_cfg", "copy_to_clip")
+               "set_cfg", "copy_to_clip", "clear_clip_history", "open_sound_settings")
 
 
 class _Handler(BaseHTTPRequestHandler):

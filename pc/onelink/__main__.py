@@ -19,8 +19,10 @@ def main(argv: list[str] | None = None) -> int:
                     help="with --selftest: skip the mDNS check")
     ap.add_argument("--tk", action="store_true",
                     help="use the classic Tk window instead of the web UI")
+    ap.add_argument("--tray", action="store_true",
+                    help="tray only, no window (used for sign-in autostart)")
     ap.add_argument("--window", action="store_true",
-                    help="open the app window (WebView) instead of starting in the tray")
+                    help="window only, no tray icon")
     ap.add_argument("--no-tray", action="store_true", help="alias for --window")
     ap.add_argument("--serve", action="store_true",
                     help="headless: serve the UI on 127.0.0.1 and print the URL")
@@ -95,10 +97,13 @@ def main(argv: list[str] | None = None) -> int:
             bridge.shutdown()
         return 0
     if args.window or args.no_tray:
-        from .webhost import run_gui
-        return run_gui(initial_host=args.host)
-    from .tray import run_tray
-    return run_tray(initial_host=args.host)
+        from .desktop import run_app
+        return run_app(initial_host=args.host, tray=False)
+    if args.tray:
+        from .tray import run_tray
+        return run_tray(initial_host=args.host)
+    from .desktop import run_app
+    return run_app(initial_host=args.host, tray=True)
 
 
 if __name__ == "__main__":

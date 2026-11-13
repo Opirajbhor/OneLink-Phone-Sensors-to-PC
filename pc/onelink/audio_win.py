@@ -37,7 +37,8 @@ MAXPNAMELEN = 32
 # Device-name ranking for the VB-Audio virtual cable. The user's box exposes
 # "CABLE In 16ch (VB-Audio Virtual Cable)" and "CABLE Input (VB-Audio Virtual
 # Cable)" — winmm truncates szPname to 31 chars, so match on substrings only.
-CABLE_PREFERRED = ("cable in 16", "cable input", "cable in", "cable",
+CABLE_PREFERRED = ("onelink speaker 16", "cable in 16", "onelink speaker",
+                   "cable input", "cable in", "onelink", "cable",
                    "vb-audio", "vb audio")
 
 
