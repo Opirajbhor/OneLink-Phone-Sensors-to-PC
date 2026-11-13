@@ -1,4 +1,4 @@
-# BTBridge
+# OneLink
 
 Use an Android phone's **microphone** and **camera** on a Windows PC, and (planned) send the
 PC's audio back to the phone. Nothing to root, no virtual-Bluetooth driver, no cloud.
@@ -20,7 +20,7 @@ Two halves:
   control (0/90/180/270, applied instantly on the PC side).
 - **PC audio → phone**: speaker toggle captures the PC's output (WASAPI loopback) and plays it on
   the phone, so it can reach the phone's speaker, or Bluetooth headphones paired to the phone.
-- Discovery: mDNS `_btbridge._tcp.`, plus `adb devices` and manual `host:port`.
+- Discovery: mDNS `_onelink._tcp.`, plus `adb devices` and manual `host:port`.
 - Transport: **adb forward** (fast, wired) or plain **Wi-Fi/LAN** (no adb, no developer options on
   the PC side; the phone app does the capture itself).
 
@@ -42,21 +42,30 @@ export ANDROID_HOME=<android-sdk>
 cd android && ./gradlew assembleDebug
 # apk: android/app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/debug/app-debug.apk
-adb shell pm grant com.btbridge android.permission.RECORD_AUDIO
-adb shell pm grant com.btbridge android.permission.CAMERA
+adb shell pm grant com.onelink android.permission.RECORD_AUDIO
+adb shell pm grant com.onelink android.permission.CAMERA
 ```
 
 `android/local.properties` holds `sdk.dir` and must never be committed.
 
 ## Run the PC app
 
+Run the installer (`release\OneLink-Setup-1.3.exe`) and OneLink starts in the **system tray** —
+no window, no WebView process. Right-click the tray icon for Microphone / Camera / Speaker /
+Clipboard toggles, or "Open OneLink" to use the UI in your browser. Idle cost measured on this
+machine: **~57 MB RAM, ~0.6 s CPU per minute**, versus ~200 MB for the WebView window.
+
+From source:
+
 ```bat
-pc\run.bat            :: window
-pc\run.bat --selftest :: 15 checks incl. a VB-Cable loopback, no phone needed
+pc\run.bat                 :: tray
+pc\run.bat --window        :: the WebView window instead
+pc\run.bat --serve         :: headless, prints the local URL
+pc\run.bat --selftest      :: 15 checks incl. a VB-Cable loopback, no phone needed
 ```
 
-Requires Python 3.11+ with `tkinter`, `pillow`, `zeroconf`; VB-Cable for the virtual microphone.
-`run.bat` finds a suitable interpreter automatically.
+Requires Python 3.11+ with `tkinter`, `pillow`, `zeroconf`, `pystray`; VB-Cable for the virtual
+microphone.
 
 ## Release artifacts
 
@@ -64,15 +73,24 @@ Requires Python 3.11+ with `tkinter`, `pillow`, `zeroconf`; VB-Cable for the vir
 
 | File | What it is |
 |---|---|
-| `release/BTBridge.exe` | the Windows client, self-contained (no Python needed) |
-| `release/BTBridge-v1.0.apk` | the phone app, debug-signed |
+| `release/OneLink-Setup-1.3.exe` | the installer — per-user, optional tray autostart |
+| `release/app/OneLink/` | the packaged app folder the installer wraps |
+| `release/OneLink-v1.3.apk` | the phone app, debug-signed |
 
-Rebuild the exe:
+Rebuild everything:
 
 ```bat
-python -m pip install pyinstaller
-python -m PyInstaller --onefile --windowed --name BTBridge --paths pc ^
-  --distpath release --hidden-import zeroconf --hidden-import PIL._tkinter_finder entry.py
+set JAVA_HOME=C:\Users\Opi\BTBridge\toolchain\jdk\jdk-17.0.21+9
+set ANDROID_HOME=C:\Users\Opi\BTBridge\toolchain\sdk
+cd android && gradlew.bat assembleDebug
+copy app\build\outputs\apk\debug\app-debug.apk ..\release\OneLink-v1.3.apk
+
+python -m PyInstaller --noconfirm --onedir --windowed --name OneLink --paths pc ^
+  --add-data "pc\onelink\webui;onelink\webui" --icon pc\onelink\webui\icon.ico ^
+  --distpath release\app --hidden-import pystray --hidden-import zeroconf ^
+  --hidden-import soundcard --hidden-import numpy entry.py
+
+"C:\Users\Opi\AppData\Local\Programs\Inno Setup 6\ISCC.exe" installer.iss
 ```
 
 ## Design notes

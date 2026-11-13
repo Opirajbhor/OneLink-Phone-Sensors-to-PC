@@ -18,8 +18,10 @@
 
     <application
         android:allowBackup="false"
-        android:label="BTBridge"
-        android:theme="@android:style/Theme.Material.Light">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher"
+        android:label="OneLink"
+        android:theme="@android:style/Theme.Material.Light.NoActionBar">
 
         <activity
             android:name=".MainActivity"
@@ -32,15 +34,15 @@
         </activity>
 
         <service
-            android:name=".BridgeService"
+            android:name=".OneLinkService"
             android:exported="false"
             android:foregroundServiceType="microphone|camera" />
 
         <service
-            android:name=".BridgeTileService"
+            android:name=".OneLinkTileService"
             android:exported="true"
-            android:icon="@android:drawable/stat_sys_data_bluetooth"
-            android:label="BTBridge"
+            android:icon="@drawable/ic_tile"
+            android:label="OneLink"
             android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
             <intent-filter>
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
@@ -51,12 +53,13 @@
         </service>
 
         <receiver
-            android:name=".BridgeReceiver"
+            android:name=".OneLinkReceiver"
             android:exported="true">
             <intent-filter>
-                <action android:name="com.btbridge.TOGGLE" />
-                <action android:name="com.btbridge.START" />
-                <action android:name="com.btbridge.STOP" />
+                <action android:name="com.onelink.TOGGLE" />
+                <action android:name="com.onelink.START" />
+                <action android:name="com.onelink.STOP" />
+                <action android:name="com.onelink.CLIPSET" />
             </intent-filter>
         </receiver>
     </application>

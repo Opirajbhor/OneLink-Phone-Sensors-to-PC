@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "BTBridge"
+rootProject.name = "OneLink"
 include(":app")

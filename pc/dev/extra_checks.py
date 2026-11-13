@@ -6,9 +6,9 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from btbridge import protocol as P
-from btbridge.selftest import FakePhone
-from btbridge.ui import App
+from onelink import protocol as P
+from onelink.selftest import FakePhone
+from onelink.ui import App
 
 
 def test_downmix():

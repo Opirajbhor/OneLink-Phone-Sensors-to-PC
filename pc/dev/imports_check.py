@@ -6,9 +6,9 @@ import traceback
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-MODULES = ["btbridge", "btbridge.protocol", "btbridge.discovery", "btbridge.client",
-           "btbridge.audio_win", "btbridge.cable_probe", "btbridge.camera",
-           "btbridge.selftest", "btbridge.ui", "btbridge.__main__"]
+MODULES = ["onelink", "onelink.protocol", "onelink.discovery", "onelink.client",
+           "onelink.audio_win", "onelink.cable_probe", "onelink.camera",
+           "onelink.selftest", "onelink.ui", "onelink.__main__"]
 OPTIONAL = {"tkinter", "PIL", "zeroconf"}
 
 bad = 0

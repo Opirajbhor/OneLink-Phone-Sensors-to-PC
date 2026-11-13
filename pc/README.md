@@ -1,19 +1,19 @@
-# BTBridge — PC client (protocol v1)
+# OneLink — PC client (protocol v1)
 
-Windows desktop app that connects to the BTBridge Android phone, plays the phone
+Windows desktop app that connects to the OneLink Android phone, plays the phone
 microphone into **VB-Cable** (so Discord / Zoom / OBS can use `CABLE Output` as a
 normal recording device) and shows the phone camera in a window.
 
 One window, no drivers, no extra services. Protocol spec: [`../PROTOCOL.md`](../PROTOCOL.md).
 
 ```
-BTBridge/pc/
+OneLink/pc/
 ├─ run.bat                 launcher (finds a suitable Python, forwards args)
 ├─ README.md               this file
-└─ btbridge/
-   ├─ __main__.py          python -m btbridge  (+ diagnostic subcommands)
+└─ onelink/
+   ├─ __main__.py          python -m onelink  (+ diagnostic subcommands)
    ├─ protocol.py          frame codec: type|len(BE u32)|payload, resumable reader
-   ├─ discovery.py         mDNS (_btbridge._tcp.) + adb devices -l + manual host
+   ├─ discovery.py         mDNS (_onelink._tcp.) + adb devices -l + manual host
    ├─ client.py            PhoneClient: socket, reader thread, cfg/stop/ping
    ├─ audio_win.py         winmm waveOut via ctypes (double/triple buffering)
    ├─ cable_probe.py       plays a tone into CABLE Input, records CABLE Output
@@ -48,20 +48,20 @@ Useful subcommands:
 
 | command | what it does |
 |---|---|
-| `python -m btbridge` | the GUI |
-| `python -m btbridge --selftest` | full headless self-test against a fake phone |
-| `python -m btbridge --list-devices` | winmm playback endpoints + which one actually opens |
-| `python -m btbridge --list-capture` | winmm recording endpoints (finds `CABLE Output`) |
-| `python -m btbridge --probe-audio` | tone into CABLE Input, record CABLE Output |
-| `python -m btbridge --host 192.168.1.50:47110` | start with that phone prefilled |
+| `python -m onelink` | the GUI |
+| `python -m onelink --selftest` | full headless self-test against a fake phone |
+| `python -m onelink --list-devices` | winmm playback endpoints + which one actually opens |
+| `python -m onelink --list-capture` | winmm recording endpoints (finds `CABLE Output`) |
+| `python -m onelink --probe-audio` | tone into CABLE Input, record CABLE Output |
+| `python -m onelink --host 192.168.1.50:47110` | start with that phone prefilled |
 
 ## 3. Connect to the real phone
 
-1. On the phone: start the BTBridge service (big switch on, status `Ready · Wi-Fi`).
+1. On the phone: start the OneLink service (big switch on, status `Ready · Wi-Fi`).
 2. Make sure PC and phone are on the same Wi-Fi network, phone service is on,
    and the phone's firewall allows inbound TCP **47110**.
 3. Start `run.bat`. The **PHONES** list fills automatically:
-   * `mDNS` — phone advertises `_btbridge._tcp.` with `name=<model>` in TXT;
+   * `mDNS` — phone advertises `_onelink._tcp.` with `name=<model>` in TXT;
    * `adb` — if a USB cable is attached and `adb devices -l` lists it
      (`adb` is taken from `BTBRIDGE_ADB`, then
      `C:\Users\Opi\AppData\Local\Temp\pt\platform-tools\adb.exe`, then `PATH`);
@@ -106,7 +106,7 @@ decoder process it. Checks:
 * winmm enumeration and opening a cable endpoint;
 * a tone played into `CABLE Input` is recorded back from `CABLE Output`
   (proves the routing Discord/Zoom will use);
-* mDNS announce + browse finds a `_btbridge._tcp.` service and reads its TXT name;
+* mDNS announce + browse finds a `_onelink._tcp.` service and reads its TXT name;
 * hello / stat / tolerance of unknown frames, ≥48 000 samples received, peak
   level ≈ 0.3, 3 JPEGs decoded at 640×480, `cfg` arriving at the phone with
   `mic/cam/camW/camH/fps`, and the dropped connection being noticed.

@@ -1,5 +1,5 @@
 @echo off
-rem BTBridge PC client launcher.
+rem OneLink PC client launcher.
 rem Finds a Python 3.11+ that has tkinter + pillow + zeroconf, then runs the app.
 rem Any arguments are forwarded, e.g.  run.bat --selftest
 setlocal enabledelayedexpansion
@@ -34,7 +34,7 @@ if not defined PYEXE (
 
 if not defined PYEXE (
   echo.
-  echo [BTBridge] No Python found with tkinter + pillow + zeroconf.
+  echo [OneLink] No Python found with tkinter + pillow + zeroconf.
   echo           Install them with:
   echo               python -m pip install pillow zeroconf
   echo           or set the interpreter explicitly in this file ^(PYEXE^).
@@ -43,11 +43,11 @@ if not defined PYEXE (
   exit /b 1
 )
 
-%PYEXE% -m btbridge %*
+%PYEXE% -m onelink %*
 set "RC=%ERRORLEVEL%"
 if not "%RC%"=="0" (
   echo.
-  echo [BTBridge] exited with code %RC%
+  echo [OneLink] exited with code %RC%
   pause
 )
 endlocal & exit /b %RC%

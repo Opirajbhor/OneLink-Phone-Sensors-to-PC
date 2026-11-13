@@ -1,6 +1,6 @@
 """Optional developer check: drive the real Tk window against the fake phone.
 
-Not needed to use the app — `python -m btbridge --selftest` covers the core
+Not needed to use the app — `python -m onelink --selftest` covers the core
 headlessly. This one opens the GUI, connects it to `FakePhone`, verifies the
 level bar / preview / device list, screenshots the window, then connects a peer
 that accepts and goes silent to prove the window stays responsive.
@@ -15,10 +15,10 @@ import time
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from btbridge.selftest import FakePhone
-from btbridge.ui import App
+from onelink.selftest import FakePhone
+from onelink.ui import App
 
-OUT = os.environ.get("SHOT", "C:/Users/Opi/AppData/Local/hermes/cache/scratch/btbridge_ui.png")
+OUT = os.environ.get("SHOT", "C:/Users/Opi/AppData/Local/hermes/cache/scratch/onelink_ui.png")
 
 
 def pump(app, seconds, stop_on=None):

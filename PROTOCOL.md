@@ -1,4 +1,4 @@
-# BTBridge — wire protocol v1
+# OneLink — wire protocol v1
 
 Two parts: an Android app that captures and serves, a Windows app that discovers, connects,
 and uses the streams. No adb required; adb is an optional faster path.
@@ -16,7 +16,7 @@ and uses the streams. No adb required; adb is an optional faster path.
 
 ## Discovery
 
-mDNS/DNS-SD service: `_btbridge._tcp.` (local), port 47110.
+mDNS/DNS-SD service: `_onelink._tcp.` (local), port 47110.
 TXT records: `name=<device model>`, `proto=1`.
 
 ## Framing
@@ -65,12 +65,33 @@ Immediately after accept, the phone sends one type-0x03 JSON line:
 ## Phone -> PC (type 0x03)
 
 ```json
-{"t":"stat","mic":true,"cam":true,"fps":9.7,"camW":640,"camH":480}
+{"t":"stat","mic":true,"cam":true,"fps":9.7,"camW":640,"camH":480,"facing":"back","audioOut":true}
 {"t":"pong"}
 {"t":"err","msg":"camera in use"}
+{"t":"clip","text":"hello","hash":"3a7bd3e2360a3d29","id":"9f2c1ab34de5","origin":"phone","ts":1763000000000}
 ```
 
 `stat` is sent every 2 s and on any state change.
+
+## Clipboard (type 0x03, either direction)
+
+```json
+{"t":"clip","text":"...","hash":"<16 hex>","id":"<12 hex>","origin":"pc|phone","ts":<ms>}
+```
+
+Loop rules both sides must implement:
+
+1. `hash` is the first 16 hex chars of SHA-1 over the UTF-8 text. Before applying an
+   incoming clip, record its hash as "last applied"; when the local clipboard listener
+   then fires with that same hash, skip it.
+2. Remember recent `id`s; a clip whose id was already seen is dropped.
+3. Debounce local copies (~250 ms) so a burst of copies becomes one message.
+4. Text is capped at 4000 chars per clip.
+
+History: newest first, de-duplicated by hash, 50 entries. PC persists it in
+`%APPDATA%\OneLink\clipboard.json`; the phone keeps it in SharedPreferences
+(`onelink_clip`). Clicking a PC history entry puts it back on the clipboard
+(`copy_to_clip`).
 
 ## Media
 
@@ -90,12 +111,12 @@ Immediately after accept, the phone sends one type-0x03 JSON line:
   foreground service with a persistent notification.
 - Microphone and camera are captured **by the app** (runtime permissions asked on first start).
 - Stopping the service must stop capture, release the wakelock, stop mDNS, and close the socket.
-- Broadcast receiver for automation: action `com.btbridge.TOGGLE` flips the state,
-  `com.btbridge.START` and `com.btbridge.STOP` set it.
+- Broadcast receiver for automation: action `com.onelink.TOGGLE` flips the state,
+  `com.onelink.START` and `com.onelink.STOP` set it.
 
 ## Windows app behaviour
 
-- Auto-discovers phones: mDNS browse of `_btbridge._tcp.`, plus `adb devices -l` when adb is
+- Auto-discovers phones: mDNS browse of `_onelink._tcp.`, plus `adb devices -l` when adb is
   available, plus manual `host:port`. The list shows the device name from TXT/`ro.product.model`.
 - One window: device list, Connect/Disconnect, checkboxes for **Mic** and **Camera**, a live mic
   level, and a camera preview.
