@@ -11,6 +11,9 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.graphics.ImageFormat
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.AudioTrack
 import android.hardware.camera2.CameraAccessException
 import android.hardware.camera2.CameraCaptureSession
 import android.hardware.camera2.CameraCharacteristics
@@ -521,6 +524,7 @@ class ClientSession(
 
     private var audio: AudioCapture? = null
     private var camera: CameraCapture? = null
+    private var playout: AudioPlayout? = null
 
     private val cfgLock = Any()
     @Volatile
@@ -535,6 +539,10 @@ class ClientSession(
     private var camH = 480
     @Volatile
     private var fps = 10
+    @Volatile
+    private var facing = "back"
+    @Volatile
+    private var audioOut = false
 
     private val camRate = RateMeter()
 
@@ -550,7 +558,7 @@ class ClientSession(
             put("name", BridgeService.deviceName())
             put("mic", ctx.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)
             put("cam", ctx.checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED)
-            put("audioOut", false)
+            put("audioOut", true)
         })
 
         svc.onClientReady(this)
@@ -571,7 +579,7 @@ class ClientSession(
                 val f = reader.next() ?: break
                 when (f.type) {
                     Proto.TYPE_JSON -> handleJson(f.payload)
-                    Proto.TYPE_PCM_STEREO -> sendErr("audio playback (proto 0x04) not supported in v1")
+                    Proto.TYPE_PCM_STEREO -> playout?.write(f.payload)
                     else -> Log.w(tag, "ignoring inbound frame type ${f.type}")
                 }
             }
@@ -603,6 +611,7 @@ class ClientSession(
 
     private fun applyCfg(obj: JSONObject) {
         var geometryChanged = false
+        var outChanged = false
         synchronized(cfgLock) {
             if (obj.has("mic")) mic = obj.optBoolean("mic", mic)
             if (obj.has("cam")) cam = obj.optBoolean("cam", cam)
@@ -621,6 +630,20 @@ class ClientSession(
                 if (f != fps) geometryChanged = true
                 fps = f
             }
+            if (obj.has("facing")) {
+                val f = if (obj.optString("facing", facing).equals("front", true)) "front" else "back"
+                if (f != facing) {
+                    facing = f
+                    geometryChanged = true
+                }
+            }
+            if (obj.has("audioOut")) {
+                val ao = obj.optBoolean("audioOut", audioOut)
+                if (ao != audioOut) {
+                    audioOut = ao
+                    outChanged = true
+                }
+            }
         }
         val micWanted = mic
         val camWanted = cam
@@ -628,6 +651,9 @@ class ClientSession(
         if (!micWanted && audio != null) {
             audio?.stop()
             audio = null
+        }
+        if (outChanged) {
+            if (audioOut) startPlayout() else stopPlayout()
         }
         if (camWanted) {
             if (camera == null || geometryChanged) {
@@ -650,20 +676,42 @@ class ClientSession(
     }
 
     private fun startCamera() {
-        val c = CameraCapture(ctx, this, camW, camH, fps)
+        val c = CameraCapture(ctx, this, camW, camH, fps, facing)
         camera = c
         c.start()
+    }
+
+    private fun startPlayout() {
+        stopPlayout()
+        val p = try {
+            AudioPlayout()
+        } catch (t: Throwable) {
+            sendErr("audio out: ${t.message}")
+            return
+        }
+        playout = p
+    }
+
+    private fun stopPlayout() {
+        val p = playout
+        playout = null
+        try {
+            p?.stop()
+        } catch (_: Throwable) {
+        }
     }
 
     private fun stopCapture() {
         synchronized(cfgLock) {
             mic = false
             cam = false
+            audioOut = false
         }
         audio?.stop()
         audio = null
         camera?.stop()
         camera = null
+        stopPlayout()
         camRate.reset()
     }
 
@@ -697,6 +745,8 @@ class ClientSession(
             put("fps", ((c?.rate() ?: 0.0) * 10).roundToInt() / 10.0)
             put("camW", c?.width ?: camW)
             put("camH", c?.height ?: camH)
+            put("facing", facing)
+            put("audioOut", playout != null)
         }
         sendJson(json)
     }
@@ -872,7 +922,8 @@ class CameraCapture(
     private val session: ClientSession,
     private val reqW: Int,
     private val reqH: Int,
-    private val reqFps: Int
+    private val reqFps: Int,
+    private val reqFacing: String
 ) {
     private val tag = "BTBridge/cam"
     private val sending = AtomicBoolean(false)
@@ -1078,18 +1129,19 @@ class CameraCapture(
     private fun pickCamera(m: CameraManager): String? {
         val ids = m.cameraIdList
         if (ids.isEmpty()) return null
-        var fallback: String? = null
+        val wantFront = reqFacing.equals("front", ignoreCase = true)
+        var back: String? = null
+        var front: String? = null
         for (id in ids) {
             try {
-                val facing = m.getCameraCharacteristics(id)
-                    .get(CameraCharacteristics.LENS_FACING)
-                if (facing == CameraCharacteristics.LENS_FACING_BACK) return id
-                if (facing == CameraCharacteristics.LENS_FACING_FRONT) fallback = id
+                when (m.getCameraCharacteristics(id).get(CameraCharacteristics.LENS_FACING)) {
+                    CameraCharacteristics.LENS_FACING_BACK -> if (back == null) back = id
+                    CameraCharacteristics.LENS_FACING_FRONT -> if (front == null) front = id
+                }
             } catch (_: Throwable) {
-                if (fallback == null) fallback = id
             }
         }
-        return fallback ?: ids[0]
+        return if (wantFront) (front ?: back ?: ids[0]) else (back ?: front ?: ids[0])
     }
 
     private fun chooseSize(sizes: Array<Size>, w: Int, h: Int): Size {
@@ -1109,5 +1161,66 @@ class CameraCapture(
             }
         }
         return best
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Audio out: play PCM16 stereo 48 kHz frames sent by the PC
+// ---------------------------------------------------------------------------
+
+class AudioPlayout {
+    private val tag = "BTBridge/out"
+    private val track: AudioTrack
+
+    @Volatile
+    private var running = true
+
+    init {
+        val minBuf = AudioTrack.getMinBufferSize(
+            48000,
+            AudioFormat.CHANNEL_OUT_STEREO,
+            AudioFormat.ENCODING_PCM_16BIT
+        )
+        val bufBytes = max(minBuf, 1920 * 6)
+        track = AudioTrack(
+            AudioAttributes.Builder()
+                .setUsage(AudioAttributes.USAGE_MEDIA)
+                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                .build(),
+            AudioFormat.Builder()
+                .setEncoding(AudioFormat.ENCODING_PCM_16BIT)
+                .setSampleRate(48000)
+                .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
+                .build(),
+            bufBytes,
+            AudioTrack.MODE_STREAM,
+            AudioManager.AUDIO_SESSION_ID_GENERATE
+        )
+        track.play()
+        Log.i(tag, "playout open (${bufBytes} bytes)")
+    }
+
+    /** Called from the socket reader: never block the control channel. */
+    fun write(pcm: ByteArray) {
+        if (!running) return
+        try {
+            track.write(pcm, 0, pcm.size, AudioTrack.WRITE_NON_BLOCKING)
+        } catch (t: Throwable) {
+            Log.w(tag, "write failed: $t")
+        }
+    }
+
+    fun stop() {
+        running = false
+        try {
+            track.pause()
+            track.flush()
+        } catch (_: Throwable) {
+        }
+        try {
+            track.release()
+        } catch (_: Throwable) {
+        }
+        Log.i(tag, "playout closed")
     }
 }

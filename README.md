@@ -16,17 +16,21 @@ Two halves:
 - Phone mic → PC, played into **VB-Cable**, so Discord/Zoom/Teams see it as a normal microphone
   (`CABLE Output`). Verified with a real loopback test (tone out `CABLE Input`, recorded back on
   `CABLE Output`).
-- Camera → PC preview window (JPEG over TCP).
+- Camera → PC preview window (JPEG over TCP), with **rear/front switching** and a **rotate**
+  control (0/90/180/270, applied instantly on the PC side).
+- **PC audio → phone**: speaker toggle captures the PC's output (WASAPI loopback) and plays it on
+  the phone, so it can reach the phone's speaker, or Bluetooth headphones paired to the phone.
 - Discovery: mDNS `_btbridge._tcp.`, plus `adb devices` and manual `host:port`.
 - Transport: **adb forward** (fast, wired) or plain **Wi-Fi/LAN** (no adb, no developer options on
   the PC side; the phone app does the capture itself).
 
+Verified against a real phone (Redmi 12, Android 15): hello advertises `audioOut`, `facing`
+switches cameras, camera frames arrive, 0x04 audio is accepted with no errors.
+
 ## Not there yet
 
-- PC audio → phone (the AudioRelay direction) — protocol type `0x04` is reserved, playback not
-  implemented.
-- Real webcam device in Zoom/Discord: v1 shows a preview window only.
 - No encryption. LAN/loopback only.
+- Camera is a preview window, not a virtual webcam device (OBS Virtual Camera can take it later).
 
 ## Build the phone app
 

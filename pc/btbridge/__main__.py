@@ -17,6 +17,8 @@ def main(argv: list[str] | None = None) -> int:
                     help="with --selftest: skip the VB-Cable loopback probe")
     ap.add_argument("--no-mdns", action="store_true",
                     help="with --selftest: skip the mDNS check")
+    ap.add_argument("--tk", action="store_true",
+                    help="use the classic Tk window instead of the web UI")
     ap.add_argument("--list-devices", action="store_true",
                     help="print the winmm playback device list and exit")
     ap.add_argument("--list-capture", action="store_true",
@@ -70,7 +72,10 @@ def main(argv: list[str] | None = None) -> int:
         return 0 if res["ok"] else 1
 
     # GUI
-    from .ui import run_gui
+    if args.tk:
+        from .ui import run_gui
+        return run_gui(initial_host=args.host)
+    from .webhost import run_gui
     return run_gui(initial_host=args.host)
 
 

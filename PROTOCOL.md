@@ -50,13 +50,16 @@ Immediately after accept, the phone sends one type-0x03 JSON line:
 ## PC -> phone (type 0x03)
 
 ```json
-{"t":"cfg","mic":true,"cam":true,"camW":640,"camH":480,"fps":10}
+{"t":"cfg","mic":true,"cam":true,"camW":640,"camH":480,"fps":10,"facing":"back","audioOut":false}
 {"t":"ping"}
 {"t":"stop"}
 ```
 
 - `cfg` selects which streams are running and the camera geometry/frame rate. Missing fields keep
-  their current value. Defaults: `mic=false, cam=false, camW=640, camH=480, fps=10`.
+  their current value. Defaults: `mic=false, cam=false, camW=640, camH=480, fps=10,
+  facing="back", audioOut=false`.
+- `facing` is `"back"` or `"front"`; changing it reopens the camera.
+- `audioOut` asks the phone to play the PCM frames the PC sends (type 0x04).
 - `stop` stops all capture but keeps the socket open (so the tile stays "on" and the phone idles).
 
 ## Phone -> PC (type 0x03)

@@ -77,7 +77,8 @@ class PhoneClient:
         self._reader: Optional[threading.Thread] = None
         self._closed = threading.Event()
         self._send_lock = threading.Lock()
-        self._cfg = {"mic": False, "cam": False, "camW": 640, "camH": 480, "fps": 10}
+        self._cfg = {"mic": False, "cam": False, "camW": 640, "camH": 480, "fps": 10,
+                     "facing": "back", "audioOut": False}
 
     # -- state --------------------------------------------------------------
     @property
@@ -177,7 +178,8 @@ class PhoneClient:
 
     def send_cfg(self, mic: Optional[bool] = None, cam: Optional[bool] = None,
                  cam_w: Optional[int] = None, cam_h: Optional[int] = None,
-                 fps: Optional[float] = None) -> bool:
+                 fps: Optional[float] = None, facing: Optional[str] = None,
+                 audio_out: Optional[bool] = None) -> bool:
         """Send a ``cfg`` frame; omitted fields are left out (protocol keeps them)."""
         cfg = dict(self._cfg)
         if mic is not None:
@@ -190,13 +192,22 @@ class PhoneClient:
             cfg["camH"] = int(cam_h)
         if fps is not None:
             cfg["fps"] = float(fps)
+        if facing is not None:
+            cfg["facing"] = "front" if str(facing).lower() == "front" else "back"
+        if audio_out is not None:
+            cfg["audioOut"] = bool(audio_out)
         self._cfg = cfg
         return self.send_json({"t": "cfg", "mic": cfg["mic"], "cam": cfg["cam"],
                                "camW": cfg["camW"], "camH": cfg["camH"],
-                               "fps": cfg["fps"]})
+                               "fps": cfg["fps"], "facing": cfg["facing"],
+                               "audioOut": cfg["audioOut"]})
+
+    def send_frame(self, ftype: int, payload: bytes) -> bool:
+        """Raw frame, used for audio playout (type 0x04)."""
+        return self._send(P.pack_frame(ftype, payload))
 
     def send_stop(self) -> bool:
-        self._cfg.update({"mic": False, "cam": False})
+        self._cfg.update({"mic": False, "cam": False, "audioOut": False})
         return self.send_json({"t": "stop"})
 
     def send_ping(self) -> bool:
