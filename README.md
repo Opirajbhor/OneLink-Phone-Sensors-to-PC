@@ -100,3 +100,20 @@ python -m PyInstaller --noconfirm --onedir --windowed --name OneLink --paths pc 
 - The phone holds a partial wakelock while serving; without it the OS suspends the tunnel.
 - Audio is raw PCM16 48 kHz mono (no codec, no added latency, ~96 KB/s), camera is JPEG frames.
 - Everything is deliberately tiny: no third-party Android libraries, no native code.
+
+## Why the audio devices are not named "OneLink"
+
+Renaming a Windows audio endpoint means writing its friendly name in
+`HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\MMDevices\Audio\{Render,Capture}\<guid>\Properties`.
+Those keys are owned by SYSTEM and grant Administrators read-only, so the write is
+refused even from an elevated shell (`Requested registry access is not allowed`),
+and taking ownership (`SeTakeOwnershipPrivilege` enabled, `WRITE_OWNER` open) is
+refused too. Only the audio service may touch them.
+
+So the rename has to happen through Windows itself:
+Settings → System → Sound → All sound devices → pick the device → Rename.
+OneLink has a button for that page (Settings → Audio → "Rename it in Windows").
+
+What OneLink does instead: it finds the virtual cable by *any* of its names —
+"OneLink Speaker / OneLink Microphone" (if you renamed it), "CABLE Input /
+CABLE Output", or the VB-Audio adapter name — so a rename never breaks routing.
