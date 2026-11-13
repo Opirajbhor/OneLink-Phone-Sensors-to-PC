@@ -85,7 +85,7 @@ class OneLinkTileService : TileService() {
         val on = OneLinkService.running
         tile.state = if (on) Tile.STATE_ACTIVE else Tile.STATE_INACTIVE
         tile.label = "OneLink"
-        tile.icon = Icon.createWithResource(this, android.R.drawable.stat_sys_data_bluetooth)
+        tile.icon = Icon.createWithResource(this, R.drawable.ic_tile)
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
             tile.subtitle = if (on) OneLinkService.statusText else "Off"
         }

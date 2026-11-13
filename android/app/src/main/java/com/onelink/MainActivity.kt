@@ -2,6 +2,7 @@ package com.onelink
 
 import android.Manifest
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -17,11 +18,13 @@ import android.util.TypedValue
 import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import kotlin.math.absoluteValue
 
 /**
  * One screen, LocalSend-flavoured: header, a hero card with a single big power
@@ -223,20 +226,20 @@ class MainActivity : Activity() {
             orientation = LinearLayout.HORIZONTAL
             gravity = Gravity.CENTER_VERTICAL
         }
-        row.addView(ImageView(this).apply {
-            setImageResource(R.mipmap.ic_launcher)
-            background = rounded(color(R.color.card), dp(15).toFloat())
-            setPadding(dp(5), dp(5), dp(5), dp(5))
-            layoutParams = LinearLayout.LayoutParams(dp(48), dp(48))
-        })
+        row.addView(avatarView(dp(50)))
 
         val titles = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(12), 0, dp(8), 0)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
         }
-        titles.addView(tv("OneLink", 21f, R.color.text, medium = true))
-        titles.addView(tv("Phone mic & camera, on your PC", 12f, R.color.muted))
+        titles.addView(tv("OneLink", 20f, R.color.text, medium = true))
+        val nameView = tv(DevicePrefs.name(this), 13f, R.color.muted).apply {
+            setPadding(0, dp(2), 0, 0)
+            contentDescription = "Rename this phone"
+            setOnClickListener { renameDialog() }
+        }
+        titles.addView(nameView)
         row.addView(titles)
 
         row.addView(tv("v" + versionName(), 10.5f, R.color.accent, medium = true).apply {
@@ -244,6 +247,60 @@ class MainActivity : Activity() {
             setPadding(dp(9), dp(3), dp(9), dp(4))
         })
         return row
+    }
+
+    /** Generated avatar: initial on a two-tone circle picked from the name. */
+    private fun avatarView(size: Int): TextView {
+        val name = DevicePrefs.name(this)
+        val initial = name.trim().take(1).uppercase().ifBlank { "O" }
+        val palette = intArrayOf(
+            0xFF2F6DF6.toInt(), 0xFF17B26A.toInt(), 0xFFF59E0B.toInt(),
+            0xFF8B5CF6.toInt(), 0xFFEF4444.toInt(), 0xFF0EA5E9.toInt()
+        )
+        val base = palette[name.hashCode().absoluteValue % palette.size]
+        val top = blend(base, 0xFFFFFFFF.toInt(), 0.38f)
+        return tv(initial, 20f, R.color.accent_ink, medium = true).apply {
+            gravity = Gravity.CENTER
+            background = GradientDrawable(
+                GradientDrawable.Orientation.TL_BR, intArrayOf(top, base)
+            ).apply { shape = GradientDrawable.OVAL }
+            layoutParams = LinearLayout.LayoutParams(size, size)
+            contentDescription = name
+            setOnClickListener { renameDialog() }
+        }
+    }
+
+    private fun blend(a: Int, b: Int, t: Float): Int {
+        val ar = (a shr 16) and 0xFF
+        val ag = (a shr 8) and 0xFF
+        val ab = a and 0xFF
+        val br = (b shr 16) and 0xFF
+        val bg = (b shr 8) and 0xFF
+        val bb = b and 0xFF
+        val r = (ar + (br - ar) * t).toInt()
+        val g = (ag + (bg - ag) * t).toInt()
+        val bl = (ab + (bb - ab) * t).toInt()
+        return (0xFF shl 24) or (r shl 16) or (g shl 8) or bl
+    }
+
+    private fun renameDialog() {
+        val edit = EditText(this).apply {
+            setText(DevicePrefs.name(this@MainActivity))
+            setSelection(text.length)
+            isSingleLine = true
+            setPadding(dp(18), dp(10), dp(18), dp(10))
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Phone name")
+            .setMessage("This is the name your PC sees. Up to ${DevicePrefs.MAX} characters.")
+            .setView(edit)
+            .setPositiveButton("Save") { _, _ ->
+                DevicePrefs.rename(this, edit.text.toString())
+                OneLinkService.renamed()
+                setContentView(build())
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
     }
 
     /** Adds a "Label ............ value" row and returns the value view. */

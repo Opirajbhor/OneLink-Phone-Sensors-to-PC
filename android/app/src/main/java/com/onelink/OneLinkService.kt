@@ -85,6 +85,14 @@ class OneLinkService : Service() {
         @Volatile
         internal var activeSession: ClientSession? = null
 
+        /** App context for prefs that must be readable before the service runs. */
+        @Volatile
+        private var appCtx: Context? = null
+
+        /** The live service instance, for work that needs it (mDNS rename). */
+        @Volatile
+        private var self: OneLinkService? = null
+
         /** Send a copy made on the phone (Activity button / adb broadcast). */
         fun pushClip(ctx: Context, text: String) {
             val s = activeSession
@@ -95,7 +103,22 @@ class OneLinkService : Service() {
             }
         }
 
-        fun deviceName(): String = Build.MODEL?.takeIf { it.isNotBlank() } ?: "Android"
+        fun deviceName(): String {
+            val ctx = appCtx
+            if (ctx != null) return DevicePrefs.name(ctx)
+            val model = Build.MODEL ?: ""
+            return if (model.isNotBlank()) model else "Android phone"
+        }
+
+        /** A rename happened in the UI: refresh mDNS and tell the PC. */
+        fun renamed() {
+            val svc = self ?: return
+            try {
+                svc.reannounce()
+            } catch (t: Throwable) {
+                Log.w(TAG, "rename refresh: $t")
+            }
+        }
 
         fun start(ctx: Context) {
             val i = Intent(ctx, OneLinkService::class.java).setAction(ACTION_START)
@@ -145,6 +168,8 @@ class OneLinkService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
+        self = this
+        appCtx = applicationContext
         super.onCreate()
         createChannel()
     }
@@ -170,6 +195,7 @@ class OneLinkService : Service() {
     }
 
     override fun onDestroy() {
+        if (self === this) self = null
         stopServing()
         super.onDestroy()
     }
@@ -463,6 +489,30 @@ class OneLinkService : Service() {
         } catch (t: Throwable) {
             Log.w(TAG, "mDNS unavailable: $t")
         }
+    }
+
+    /** Re-advertise under a new name and tell a connected PC about it. */
+    internal fun reannounce() {
+        try {
+            unregisterMdns()
+        } catch (t: Throwable) {
+            Log.w(TAG, "reannounce stop: $t")
+        }
+        android.os.Handler(mainLooper).postDelayed({
+            try {
+                registerMdns()
+            } catch (t: Throwable) {
+                Log.w(TAG, "reannounce start: $t")
+            }
+            activeSession?.let { s ->
+                s.sendJson(JSONObject().apply {
+                    put("t", "hello")
+                    put("proto", 1)
+                    put("name", deviceName())
+                    put("caps", org.json.JSONArray(listOf("mic", "cam", "audioOut", "clip")))
+                })
+            }
+        }, 600)
     }
 
     private fun unregisterMdns() {
@@ -1389,3 +1439,36 @@ object ClipHistory {
 
     fun latest(ctx: Context): String? = list(ctx, 1).firstOrNull()?.optString("text")
 }
+
+// ---------------------------------------------------------------------------
+// Device name: what the PC sees, editable from the app header
+// ---------------------------------------------------------------------------
+
+object DevicePrefs {
+    private const val PREFS = "onelink_prefs"
+    private const val KEY_NAME = "device_name"
+    const val MAX = 32
+
+    fun name(ctx: Context): String {
+        val saved = try {
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+                .getString(KEY_NAME, "") ?: ""
+        } catch (t: Throwable) {
+            ""
+        }
+        if (saved.isNotBlank()) return saved.take(MAX)
+        val model = android.os.Build.MODEL ?: ""
+        return if (model.isNotBlank()) model.take(MAX) else "Android phone"
+    }
+
+    fun rename(ctx: Context, value: String) {
+        val clean = value.trim().replace(Regex("\\s+"), " ").take(MAX)
+        if (clean.isEmpty()) return
+        try {
+            ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
+                .putString(KEY_NAME, clean).apply()
+        } catch (_: Throwable) {
+        }
+    }
+}
+
